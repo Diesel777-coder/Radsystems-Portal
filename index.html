@@ -435,7 +435,7 @@
       return await res.json();
     }
 
-    // --- File Upload Handler
+    // --- File Upload Handler (same as assistant tab)
     async function uploadFileBase64(file, studentId, assignmentId) {
       const token = localStorage.getItem('token') || '';
       const buf = await file.arrayBuffer();
@@ -641,46 +641,6 @@
         }
       } catch (err) {
         console.error('Failed to load assignment details:', err);
-      }
-    }
-
-    // Submit assignment
-    async function submitAssignment(assignmentId, file) {
-      try {
-        const res = await api('submitAssignment', { assignmentId, file });
-        if (res.ok) {
-          // Update the assignment status
-          const assignment = state.student.assignments.find(a => a.assignmentId === assignmentId);
-          if (assignment) {
-            assignment.status = 'Submitted';
-            assignment.hasSubmission = true;
-            assignment.submission = res.submission;
-          }
-          renderStudent();
-          alert('Assignment submitted successfully!');
-        }
-      } catch (err) {
-        alert('Failed to submit assignment: ' + err.message);
-      }
-    }
-
-    // Update submission
-    async function updateSubmission(submissionId, file) {
-      try {
-        const res = await api('updateSubmission', { submissionId, file });
-        if (res.ok) {
-          // Find the assignment that has this submission and update it
-          for (let assignment of state.student.assignments) {
-            if (assignment.submission && assignment.submission.submissionId === submissionId) {
-              assignment.submission = res.submission;
-              break;
-            }
-          }
-          renderStudent();
-          alert('Submission updated successfully!');
-        }
-      } catch (err) {
-        alert('Failed to update submission: ' + err.message);
       }
     }
 
@@ -1012,6 +972,7 @@
 
     // Make functions available globally for onclick handlers
     window.toggleAssignmentExpansion = toggleAssignmentExpansion;
+    
     window.submitAssignment = async function(assignmentId, file) {
       if (!file) {
         alert('Please select a file to upload');
@@ -1019,30 +980,36 @@
       }
       
       try {
-        // Convert file to base64 for upload
-        const reader = new FileReader();
-        reader.onload = async function(e) {
-          const base64 = e.target.result.split(',')[1];
-          const fileData = {
-            base64: base64,
+        // Use the same upload logic as the assistant tab
+        const studentId = state.student.studentId || state.user.userId;
+        const uploadRes = await uploadFileBase64(file, studentId, assignmentId);
+        
+        if (!uploadRes || !uploadRes.ok) throw new Error(uploadRes?.error || 'Upload failed');
+        if (!uploadRes.fileUrl) throw new Error('Upload returned no fileUrl');
+        
+        // Now submit the assignment with the file URL
+        const res = await api('submitAssignment', { 
+          assignmentId, 
+          file: {
             filename: file.name,
-            mimeType: file.type
-          };
-          
-          const res = await api('submitAssignment', { assignmentId, file: fileData });
-          if (res.ok) {
-            // Update the assignment status
-            const assignment = state.student.assignments.find(a => a.assignmentId === assignmentId);
-            if (assignment) {
-              assignment.status = 'Submitted';
-              assignment.hasSubmission = true;
-              assignment.submission = res.submission;
-            }
-            renderStudent();
-            alert('Assignment submitted successfully!');
+            mimeType: file.type,
+            fileUrl: uploadRes.fileUrl
           }
-        };
-        reader.readAsDataURL(file);
+        });
+        
+        if (res.ok) {
+          // Update the assignment status - use the same logic as assistant tab
+          const assignment = state.student.assignments.find(a => a.assignmentId === assignmentId);
+          if (assignment) {
+            assignment.status = 'Submitted';
+            assignment.hasSubmission = true;
+            assignment.submission = res.submission;
+          }
+          
+          // Refresh the student dashboard to show updated status
+          await loadRoleDash();
+          alert('Assignment submitted successfully!');
+        }
       } catch (err) {
         alert('Failed to submit assignment: ' + err.message);
       }
@@ -1055,30 +1022,42 @@
       }
       
       try {
-        // Convert file to base64 for upload
-        const reader = new FileReader();
-        reader.onload = async function(e) {
-          const base64 = e.target.result.split(',')[1];
-          const fileData = {
-            base64: base64,
+        // Use the same upload logic as the assistant tab
+        const studentId = state.student.studentId || state.user.userId;
+        const assignmentId = state.student.assignments.find(a => 
+          a.submission && a.submission.submissionId === submissionId
+        )?.assignmentId;
+        
+        if (!assignmentId) throw new Error('Could not find assignment for this submission');
+        
+        const uploadRes = await uploadFileBase64(file, studentId, assignmentId);
+        
+        if (!uploadRes || !uploadRes.ok) throw new Error(uploadRes?.error || 'Upload failed');
+        if (!uploadRes.fileUrl) throw new Error('Upload returned no fileUrl');
+        
+        // Now update the submission with the new file URL
+        const res = await api('updateSubmission', { 
+          submissionId, 
+          file: {
             filename: file.name,
-            mimeType: file.type
-          };
-          
-          const res = await api('updateSubmission', { submissionId, file: fileData });
-          if (res.ok) {
-            // Find the assignment that has this submission and update it
-            for (let assignment of state.student.assignments) {
-              if (assignment.submission && assignment.submission.submissionId === submissionId) {
-                assignment.submission = res.submission;
-                break;
-              }
-            }
-            renderStudent();
-            alert('Submission updated successfully!');
+            mimeType: file.type,
+            fileUrl: uploadRes.fileUrl
           }
-        };
-        reader.readAsDataURL(file);
+        });
+        
+        if (res.ok) {
+          // Find the assignment that has this submission and update it
+          for (let assignment of state.student.assignments) {
+            if (assignment.submission && assignment.submission.submissionId === submissionId) {
+              assignment.submission = res.submission;
+              break;
+            }
+          }
+          
+          // Refresh the student dashboard to show updated status
+          await loadRoleDash();
+          alert('Submission updated successfully!');
+        }
       } catch (err) {
         alert('Failed to update submission: ' + err.message);
       }
