@@ -4,19 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Dashboard</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
         body {
-            background-color: #f5f5f5;
+            background-color: #f5f7fa;
             color: #333;
             line-height: 1.6;
         }
@@ -28,12 +26,12 @@
         }
         
         header {
-            background-color: #1F3C88;
+            background: linear-gradient(135deg, #1F3C88, #4A6DA7);
             color: white;
             padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
         
         .student-info {
@@ -42,47 +40,108 @@
             align-items: center;
         }
         
+        .student-details {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #6BCB77, #28a745);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+        }
+        
         .logout-btn {
             background-color: #E84545;
             color: white;
             border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
+            padding: 10px 20px;
+            border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
         }
         
         .logout-btn:hover {
             background-color: #d33c3c;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
         
         .dashboard-section {
             background-color: white;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
         
         .section-title {
             color: #1F3C88;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #eee;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f2f5;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: 800;
+            color: #1F3C88;
+            margin: 10px 0;
+        }
+        
+        .stat-label {
+            color: #6B7280;
+            font-weight: 600;
         }
         
         .assignments-list {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 20px;
         }
         
         .assignment-card {
-            background-color: #f9f9f9;
-            border-radius: 8px;
-            padding: 15px;
-            border-left: 4px solid #1F3C88;
+            background-color: white;
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 5px solid #1F3C88;
             transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        
+        .assignment-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
         }
         
         .assignment-header {
@@ -94,22 +153,22 @@
         
         .assignment-title {
             font-weight: bold;
-            font-size: 1.1em;
-            color: #333;
+            font-size: 1.2em;
+            color: #1F3C88;
         }
         
         .assignment-meta {
             display: flex;
-            gap: 15px;
-            margin-top: 5px;
-            color: #666;
-            font-size: 0.9em;
+            gap: 20px;
+            margin-top: 8px;
+            color: #6B7280;
+            font-size: 0.95em;
         }
         
         .status-badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.8em;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
             font-weight: bold;
         }
         
@@ -131,7 +190,7 @@
         .expand-btn {
             background: none;
             border: none;
-            font-size: 1.2em;
+            font-size: 1.4em;
             cursor: pointer;
             color: #1F3C88;
             transition: transform 0.3s ease;
@@ -152,33 +211,37 @@
         }
         
         .detail-content {
-            padding: 15px 0;
+            padding: 20px 0;
             border-top: 1px solid #eee;
-            margin-top: 10px;
+            margin-top: 15px;
         }
         
         .upload-section {
             margin: 20px 0;
-            padding: 15px;
+            padding: 20px;
             background-color: #f0f7ff;
-            border-radius: 8px;
+            border-radius: 10px;
         }
         
         .file-input {
-            margin: 10px 0;
+            margin: 15px 0;
             width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            padding: 12px;
+            border: 2px dashed #1F3C88;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.7);
         }
         
         .btn {
-            padding: 8px 16px;
+            padding: 10px 20px;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
-            transition: background-color 0.3s;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
         
         .btn-primary {
@@ -188,6 +251,7 @@
         
         .btn-primary:hover {
             background-color: #172b63;
+            transform: translateY(-2px);
         }
         
         .btn-success {
@@ -197,6 +261,7 @@
         
         .btn-success:hover {
             background-color: #5ab866;
+            transform: translateY(-2px);
         }
         
         .btn-secondary {
@@ -206,13 +271,14 @@
         
         .btn-secondary:hover {
             background-color: #5a6268;
+            transform: translateY(-2px);
         }
         
         .submission-info {
             margin-top: 15px;
-            padding: 10px;
+            padding: 15px;
             background-color: #e9ecef;
-            border-radius: 4px;
+            border-radius: 8px;
         }
         
         .hidden {
@@ -220,71 +286,79 @@
         }
         
         .back-btn {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             background-color: #6c757d;
             color: white;
             border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
+            padding: 10px 20px;
+            border-radius: 6px;
             cursor: pointer;
             display: none;
+            align-items: center;
+            gap: 8px;
         }
         
         .back-btn.visible {
-            display: inline-block;
+            display: inline-flex;
         }
         
         .grade-display {
             margin-top: 15px;
-            padding: 10px;
+            padding: 15px;
             background-color: #d4edda;
-            border-radius: 4px;
+            border-radius: 8px;
             border-left: 4px solid #28a745;
         }
         
         .feedback-display {
-            margin-top: 10px;
-            padding: 10px;
+            margin-top: 15px;
+            padding: 15px;
             background-color: #e2e3e5;
-            border-radius: 4px;
+            border-radius: 8px;
             border-left: 4px solid #6c757d;
         }
         
-        .kpi-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-bottom: 20px;
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 15px;
+            flex-wrap: wrap;
         }
         
-        .kpi-card {
-            background-color: white;
-            border-radius: 8px;
-            padding: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-        
-        .kpi-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: #1F3C88;
-            margin: 10px 0;
-        }
-        
-        .kpi-label {
-            color: #666;
-            font-size: 14px;
+        .deadline-warning {
+            color: #E84545;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 5px;
         }
         
         @media (max-width: 768px) {
-            .kpi-grid {
-                grid-template-columns: 1fr;
+            .student-info {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .assignment-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
             }
             
             .assignment-meta {
                 flex-direction: column;
-                gap: 5px;
+                gap: 8px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
             }
         }
     </style>
@@ -293,33 +367,42 @@
     <div class="container">
         <header>
             <div class="student-info">
-                <div>
-                    <h1>Student Portal</h1>
-                    <p id="student-name">Loading...</p>
+                <div class="student-details">
+                    <div class="avatar">JS</div>
+                    <div>
+                        <h1>Student Portal</h1>
+                        <p id="student-name">John Smith - Computer Science</p>
+                    </div>
                 </div>
-                <button class="logout-btn" id="logout-btn">Logout</button>
+                <button class="logout-btn" id="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
             </div>
         </header>
         
-        <div class="kpi-grid">
-            <div class="kpi-card">
-                <div class="kpi-label">Active Assignments</div>
-                <div class="kpi-value" id="kpi-assignments">0</div>
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-label">Total Assignments</div>
+                <div class="stat-value">5</div>
             </div>
-            <div class="kpi-card">
-                <div class="kpi-label">Pending Submissions</div>
-                <div class="kpi-value" id="kpi-pending">0</div>
+            <div class="stat-card">
+                <div class="stat-label">Pending Submission</div>
+                <div class="stat-value">2</div>
             </div>
-            <div class="kpi-card">
-                <div class="kpi-label">Graded Assignments</div>
-                <div class="kpi-value" id="kpi-graded">0</div>
+            <div class="stat-card">
+                <div class="stat-label">Graded</div>
+                <div class="stat-value">3</div>
             </div>
         </div>
         
-        <button class="back-btn" id="back-btn">← Back to All Assignments</button>
+        <button class="back-btn" id="back-btn">
+            <i class="fas fa-arrow-left"></i> Back to All Assignments
+        </button>
         
         <div class="dashboard-section">
-            <h2 class="section-title">My Assignments</h2>
+            <h2 class="section-title">
+                <i class="fas fa-tasks"></i> My Assignments
+            </h2>
             <div class="assignments-list" id="assignments-list">
                 <!-- Assignments will be loaded here -->
             </div>
@@ -327,9 +410,67 @@
     </div>
 
     <script>
+        // Sample data for demonstration
+        const assignmentsData = [
+            {
+                id: 'asg1',
+                title: 'Data Structures Project',
+                course: 'Computer Science',
+                unit: 'CS201',
+                deadline: '2023-12-15',
+                status: 'Pending',
+                description: 'Implement a binary search tree with all operations. Include time complexity analysis for each operation.',
+                grade: '',
+                feedback: ''
+            },
+            {
+                id: 'asg2',
+                title: 'Database Design',
+                course: 'Database Systems',
+                unit: 'CS305',
+                deadline: '2023-12-10',
+                status: 'Submitted',
+                description: 'Design a normalized database schema for an e-commerce platform. Include ER diagrams and schema definitions.',
+                grade: '',
+                feedback: ''
+            },
+            {
+                id: 'asg3',
+                title: 'Web Development Assignment',
+                course: 'Web Technologies',
+                unit: 'CS215',
+                deadline: '2023-11-28',
+                status: 'Checked',
+                description: 'Create a responsive dashboard using HTML, CSS, and JavaScript. Implement at least three interactive features.',
+                grade: 'A-',
+                feedback: 'Excellent work on the responsive design. Consider improving the accessibility features for screen readers.'
+            },
+            {
+                id: 'asg4',
+                title: 'Algorithms Problem Set',
+                course: 'Advanced Algorithms',
+                unit: 'CS420',
+                deadline: '2023-12-20',
+                status: 'Pending',
+                description: 'Solve the provided algorithm problems. Provide time and space complexity analysis for each solution.',
+                grade: '',
+                feedback: ''
+            },
+            {
+                id: 'asg5',
+                title: 'Machine Learning Report',
+                course: 'Introduction to ML',
+                unit: 'CS350',
+                deadline: '2023-11-30',
+                status: 'Checked',
+                description: 'Compare and contrast three different classification algorithms on the provided dataset.',
+                grade: 'B+',
+                feedback: 'Good comparison, but needed more depth in the evaluation section. Well-structured report overall.'
+            }
+        ];
+
         // Global variables
         let currentUser = null;
-        let studentData = null;
         let assignments = [];
         let expandedAssignmentId = null;
         
@@ -338,44 +479,23 @@
         const studentNameEl = document.getElementById('student-name');
         const logoutBtn = document.getElementById('logout-btn');
         const backBtn = document.getElementById('back-btn');
-        const kpiAssignments = document.getElementById('kpi-assignments');
-        const kpiPending = document.getElementById('kpi-pending');
-        const kpiGraded = document.getElementById('kpi-graded');
-        
-        // API configuration
-        const API_BASE = "https://script.google.com/macros/s/AKfycbxHMxFNXbnPZ_MQskkaPIiqJcqlGN7r1DVtLN_isEY6my4_AW1Wlc9CPhGni_SvrF7f0g/exec";
         
         // Initialize the application
         document.addEventListener('DOMContentLoaded', function() {
-            // Check if user is logged in
-            const token = localStorage.getItem('token');
-            if (!token) {
-                window.location.href = 'login.html';
-                return;
-            }
+            // For demo purposes, we'll use sample data
+            currentUser = {
+                displayName: 'John Smith',
+                course: 'Computer Science'
+            };
             
-            // Get user data
-            apiCall('me', { token })
-                .then(response => {
-                    if (response.ok) {
-                        currentUser = response.user;
-                        studentNameEl.textContent = `${currentUser.displayName} - ${currentUser.course}`;
-                        loadStudentDashboard(token);
-                    } else {
-                        alert('Session expired. Please log in again.');
-                        localStorage.removeItem('token');
-                        window.location.href = 'login.html';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred. Please try again.');
-                });
-                
+            assignments = assignmentsData;
+            
+            // Render the dashboard
+            renderAssignments();
+            
             // Set up event listeners
             logoutBtn.addEventListener('click', function() {
-                localStorage.removeItem('token');
-                window.location.href = 'login.html';
+                alert('Logout functionality would go here');
             });
             
             backBtn.addEventListener('click', function() {
@@ -384,32 +504,6 @@
                 expandedAssignmentId = null;
             });
         });
-        
-        // Load student dashboard data
-        function loadStudentDashboard(token) {
-            apiCall('getStudentDashboard', { token })
-                .then(response => {
-                    if (response.ok) {
-                        studentData = response.student;
-                        assignments = response.assignments;
-                        updateKPIs();
-                        renderAssignments();
-                    } else {
-                        alert('Failed to load dashboard data.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while loading data.');
-                });
-        }
-        
-        // Update KPI cards
-        function updateKPIs() {
-            kpiAssignments.textContent = assignments.length;
-            kpiPending.textContent = assignments.filter(a => a.status === 'Pending').length;
-            kpiGraded.textContent = assignments.filter(a => a.status === 'Checked').length;
-        }
         
         // Render assignments list
         function renderAssignments() {
@@ -425,49 +519,59 @@
         function createAssignmentElement(assignment) {
             const assignmentEl = document.createElement('div');
             assignmentEl.className = 'assignment-card';
-            assignmentEl.dataset.assignmentId = assignment.assignmentId;
+            assignmentEl.dataset.assignmentId = assignment.id;
             
             const statusClass = getStatusClass(assignment.status);
+            const isOverdue = isDeadlineOverdue(assignment.deadline);
             
             assignmentEl.innerHTML = `
                 <div class="assignment-header">
                     <div>
                         <div class="assignment-title">${assignment.title}</div>
                         <div class="assignment-meta">
-                            <span>Unit: ${assignment.unit}</span>
-                            <span>Deadline: ${formatDate(assignment.deadline)}</span>
+                            <span><i class="fas fa-book"></i> ${assignment.course}</span>
+                            <span><i class="fas fa-cube"></i> ${assignment.unit}</span>
+                            <span><i class="fas fa-calendar-alt"></i> ${formatDate(assignment.deadline)}</span>
                             <span class="status-badge ${statusClass}">${assignment.status}</span>
                         </div>
+                        ${isOverdue && assignment.status === 'Pending' ? 
+                            `<div class="deadline-warning"><i class="fas fa-exclamation-circle"></i> Deadline passed - submission overdue</div>` : ''}
                     </div>
-                    <button class="expand-btn">▼</button>
+                    <button class="expand-btn"><i class="fas fa-chevron-down"></i></button>
                 </div>
                 <div class="assignment-details">
                     <div class="detail-content">
-                        <p><strong>Course:</strong> ${assignment.course}</p>
-                        <p><strong>Unit:</strong> ${assignment.unit}</p>
-                        <p><strong>Deadline:</strong> ${formatDate(assignment.deadline)}</p>
+                        <p><strong>Description:</strong> ${assignment.description}</p>
                         
-                        <div class="upload-section" id="upload-section-${assignment.assignmentId}">
-                            <h3>Submit Your Work</h3>
-                            <input type="file" class="file-input" id="file-input-${assignment.assignmentId}">
-                            <button class="btn btn-primary" onclick="handleUpload('${assignment.assignmentId}')" id="upload-btn-${assignment.assignmentId}">Upload File</button>
-                            <button class="btn btn-success" onclick="submitAssignment('${assignment.assignmentId}')" id="submit-btn-${assignment.assignmentId}">Submit Assignment</button>
+                        <div class="upload-section" id="upload-section-${assignment.id}">
+                            <h3><i class="fas fa-cloud-upload-alt"></i> Submit Your Work</h3>
+                            <input type="file" class="file-input" id="file-input-${assignment.id}">
+                            <div class="action-buttons">
+                                <button class="btn btn-primary" onclick="handleUpload('${assignment.id}')" id="upload-btn-${assignment.id}">
+                                    <i class="fas fa-upload"></i> Upload File
+                                </button>
+                                <button class="btn btn-success" onclick="submitAssignment('${assignment.id}')" id="submit-btn-${assignment.id}">
+                                    <i class="fas fa-paper-plane"></i> Submit Assignment
+                                </button>
+                            </div>
                             
-                            <div class="submission-info hidden" id="submission-info-${assignment.assignmentId}">
-                                <p><strong>Submitted file:</strong> <span id="submitted-file-${assignment.assignmentId}"></span></p>
-                                <button class="btn btn-secondary" onclick="editSubmission('${assignment.assignmentId}')" id="edit-btn-${assignment.assignmentId}">Edit Submission</button>
+                            <div class="submission-info hidden" id="submission-info-${assignment.id}">
+                                <p><strong><i class="fas fa-file"></i> Submitted file:</strong> <span id="submitted-file-${assignment.id}"></span></p>
+                                <button class="btn btn-secondary" onclick="editSubmission('${assignment.id}')" id="edit-btn-${assignment.id}">
+                                    <i class="fas fa-edit"></i> Edit Submission
+                                </button>
                             </div>
                         </div>
                         
                         ${assignment.grade ? `
                         <div class="grade-display">
-                            <h4>Grade: ${assignment.grade}</h4>
+                            <h4><i class="fas fa-star"></i> Grade: ${assignment.grade}</h4>
                         </div>
                         ` : ''}
                         
                         ${assignment.feedback ? `
                         <div class="feedback-display">
-                            <h4>Feedback:</h4>
+                            <h4><i class="fas fa-comment"></i> Feedback:</h4>
                             <p>${assignment.feedback}</p>
                         </div>
                         ` : ''}
@@ -478,11 +582,11 @@
             // Set up expand/collapse functionality
             const header = assignmentEl.querySelector('.assignment-header');
             header.addEventListener('click', function() {
-                toggleAssignment(assignment.assignmentId);
+                toggleAssignment(assignment.id);
             });
             
             // Initialize submission state
-            initSubmissionState(assignment.assignmentId);
+            initSubmissionState(assignment.id, assignment.status);
             
             return assignmentEl;
         }
@@ -516,14 +620,13 @@
         }
         
         // Initialize submission state based on assignment status
-        function initSubmissionState(assignmentId) {
-            const assignment = assignments.find(a => a.assignmentId === assignmentId);
+        function initSubmissionState(assignmentId, status) {
             const uploadBtn = document.getElementById(`upload-btn-${assignmentId}`);
             const submitBtn = document.getElementById(`submit-btn-${assignmentId}`);
             const submissionInfo = document.getElementById(`submission-info-${assignmentId}`);
             const editBtn = document.getElementById(`edit-btn-${assignmentId}`);
             
-            if (assignment.status === 'Submitted' || assignment.status === 'Checked') {
+            if (status === 'Submitted' || status === 'Checked') {
                 // Already submitted - show edit button instead of upload
                 uploadBtn.classList.add('hidden');
                 submitBtn.classList.add('hidden');
@@ -550,8 +653,7 @@
                 return;
             }
             
-            // In a real implementation, you would upload the file here
-            // For now, we'll just show a success message
+            // Show a success message
             alert(`File "${file.name}" ready for submission. Click "Submit Assignment" to complete.`);
         }
         
@@ -565,56 +667,35 @@
                 return;
             }
             
-            const token = localStorage.getItem('token');
+            // Find the assignment in our data
+            const assignmentIndex = assignments.findIndex(a => a.id === assignmentId);
+            if (assignmentIndex === -1) return;
             
-            // Convert file to base64 for submission
-            const reader = new FileReader();
-            reader.onload = function() {
-                const base64 = reader.result.split(',')[1];
-                
-                apiCall('submitAssignment', {
-                    token,
-                    assignmentId,
-                    file: {
-                        filename: file.name,
-                        mimeType: file.type,
-                        base64: base64
-                    }
-                })
-                .then(response => {
-                    if (response.ok) {
-                        alert('Assignment submitted successfully!');
-                        
-                        // Update UI to show submission
-                        const uploadBtn = document.getElementById(`upload-btn-${assignmentId}`);
-                        const submitBtn = document.getElementById(`submit-btn-${assignmentId}`);
-                        const submissionInfo = document.getElementById(`submission-info-${assignmentId}`);
-                        
-                        uploadBtn.classList.add('hidden');
-                        submitBtn.classList.add('hidden');
-                        submissionInfo.classList.remove('hidden');
-                        
-                        // Update assignment status
-                        const assignment = assignments.find(a => a.assignmentId === assignmentId);
-                        assignment.status = 'Submitted';
-                        
-                        // Update status badge
-                        const badge = document.querySelector(`[data-assignment-id="${assignmentId}"] .status-badge`);
-                        badge.textContent = 'Submitted';
-                        badge.className = 'status-badge status-submitted';
-                        
-                        // Update KPIs
-                        updateKPIs();
-                    } else {
-                        alert('Failed to submit assignment: ' + response.error);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while submitting the assignment.');
-                });
-            };
-            reader.readAsDataURL(file);
+            // Update the assignment status
+            assignments[assignmentIndex].status = 'Submitted';
+            
+            // Show success message
+            alert('Assignment submitted successfully!');
+            
+            // Update UI to show submission
+            const uploadBtn = document.getElementById(`upload-btn-${assignmentId}`);
+            const submitBtn = document.getElementById(`submit-btn-${assignmentId}`);
+            const submissionInfo = document.getElementById(`submission-info-${assignmentId}`);
+            
+            uploadBtn.classList.add('hidden');
+            submitBtn.classList.add('hidden');
+            submissionInfo.classList.remove('hidden');
+            
+            // Update status badge
+            const badge = document.querySelector(`[data-assignment-id="${assignmentId}"] .status-badge`);
+            badge.textContent = 'Submitted';
+            badge.className = 'status-badge status-submitted';
+            
+            // Update the submitted file name
+            document.getElementById(`submitted-file-${assignmentId}`).textContent = file.name;
+            
+            // Update stats
+            updateStats();
         }
         
         // Edit submission
@@ -627,6 +708,32 @@
             uploadBtn.classList.remove('hidden');
             submitBtn.classList.remove('hidden');
             submissionInfo.classList.add('hidden');
+            
+            // Find the assignment in our data
+            const assignmentIndex = assignments.findIndex(a => a.id === assignmentId);
+            if (assignmentIndex === -1) return;
+            
+            // Update the assignment status
+            assignments[assignmentIndex].status = 'Pending';
+            
+            // Update status badge
+            const badge = document.querySelector(`[data-assignment-id="${assignmentId}"] .status-badge`);
+            badge.textContent = 'Pending';
+            badge.className = 'status-badge status-pending';
+            
+            // Update stats
+            updateStats();
+        }
+        
+        // Update statistics
+        function updateStats() {
+            const totalAssignments = assignments.length;
+            const pendingCount = assignments.filter(a => a.status === 'Pending').length;
+            const gradedCount = assignments.filter(a => a.status === 'Checked').length;
+            
+            document.querySelectorAll('.stat-value')[0].textContent = totalAssignments;
+            document.querySelectorAll('.stat-value')[1].textContent = pendingCount;
+            document.querySelectorAll('.stat-value')[2].textContent = gradedCount;
         }
         
         // Helper function to get status class
@@ -643,28 +750,19 @@
         function formatDate(dateString) {
             if (!dateString) return 'No deadline';
             const date = new Date(dateString);
-            return date.toLocaleDateString();
+            return date.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            });
         }
         
-        // API call function
-        async function apiCall(action, data) {
-            try {
-                const response = await fetch(API_BASE, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        action,
-                        ...data
-                    })
-                });
-                
-                return await response.json();
-            } catch (error) {
-                console.error('API call failed:', error);
-                throw error;
-            }
+        // Helper function to check if deadline is overdue
+        function isDeadlineOverdue(deadline) {
+            if (!deadline) return false;
+            const today = new Date();
+            const deadlineDate = new Date(deadline);
+            return deadlineDate < today;
         }
     </script>
 </body>
