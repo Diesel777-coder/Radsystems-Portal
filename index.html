@@ -261,7 +261,6 @@
             <h3>Roster</h3>
             <table class="table" id="h-roster">
               <thead><tr><th>Student</th><th>Assistant</th><th>Course</th><th>Unit</th></tr></thead>
-              <tbody></tbody>
             </table>
           </div>
         </div>
@@ -444,6 +443,24 @@
       body.set('action', 'uploadFile');
       body.set('token', token);
       body.set('studentId', studentId);
+      body.set('assignmentId', assignmentId);
+      body.set('file64', b64);
+      body.set('filename', file.name);
+      body.set('mimeType', file.type || 'application/octet-stream');
+      
+      const res = await fetch(API_BASE, { method: 'POST', body });
+      if (!res.ok) throw new Error('Upload failed');
+      return await res.json();
+    }
+
+    // --- Student-specific file upload handler
+    async function uploadStudentFile(file, assignmentId) {
+      const token = localStorage.getItem('token') || '';
+      const buf = await file.arrayBuffer();
+      const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
+      const body = new URLSearchParams();
+      body.set('action', 'uploadStudentFile');
+      body.set('token', token);
       body.set('assignmentId', assignmentId);
       body.set('file64', b64);
       body.set('filename', file.name);
@@ -705,7 +722,7 @@
                     <input type="file" id="update-file-${a.assignmentId}" accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg">
                   </div>
                   <button class="btn primary" onclick="updateSubmission('${a.submission.submissionId}', document.getElementById('update-file-${a.assignmentId}').files[0])">
-                    Update Submission
+                   Update Submission
                   </button>
                 ` : `
                   <div class="divider"></div>
@@ -980,9 +997,8 @@
       }
       
       try {
-        // Use the same upload logic as the assistant tab
-        const studentId = state.student.studentId || state.user.userId;
-        const uploadRes = await uploadFileBase64(file, studentId, assignmentId);
+        // Use the student-specific upload function
+        const uploadRes = await uploadStudentFile(file, assignmentId);
         
         if (!uploadRes || !uploadRes.ok) throw new Error(uploadRes?.error || 'Upload failed');
         if (!uploadRes.fileUrl) throw new Error('Upload returned no fileUrl');
@@ -998,7 +1014,7 @@
         });
         
         if (res.ok) {
-          // Update the assignment status - use the same logic as assistant tab
+          // Update the assignment status
           const assignment = state.student.assignments.find(a => a.assignmentId === assignmentId);
           if (assignment) {
             assignment.status = 'Submitted';
@@ -1022,15 +1038,15 @@
       }
       
       try {
-        // Use the same upload logic as the assistant tab
-        const studentId = state.student.studentId || state.user.userId;
-        const assignmentId = state.student.assignments.find(a => 
+        // Find the assignment that has this submission
+        const assignment = state.student.assignments.find(a => 
           a.submission && a.submission.submissionId === submissionId
-        )?.assignmentId;
+        );
         
-        if (!assignmentId) throw new Error('Could not find assignment for this submission');
+        if (!assignment) throw new Error('Could not find assignment for this submission');
         
-        const uploadRes = await uploadFileBase64(file, studentId, assignmentId);
+        // Use the student-specific upload function
+        const uploadRes = await uploadStudentFile(file, assignment.assignmentId);
         
         if (!uploadRes || !uploadRes.ok) throw new Error(uploadRes?.error || 'Upload failed');
         if (!uploadRes.fileUrl) throw new Error('Upload returned no fileUrl');
@@ -1046,13 +1062,8 @@
         });
         
         if (res.ok) {
-          // Find the assignment that has this submission and update it
-          for (let assignment of state.student.assignments) {
-            if (assignment.submission && assignment.submission.submissionId === submissionId) {
-              assignment.submission = res.submission;
-              break;
-            }
-          }
+          // Update the submission in state
+          assignment.submission = res.submission;
           
           // Refresh the student dashboard to show updated status
           await loadRoleDash();
