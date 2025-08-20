@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     :root{
       --bg:#FAFAF7; --card:#FFFFFF; --muted:#6B7280; --ink:#0F172A; --accent:#0EA5E9; --accent-2:#22C55E; --warn:#F59E0B; --danger:#EF4444; --border:#E5E7EB;
@@ -358,6 +359,9 @@
             <thead><tr><th>Assignment</th><th>Grade</th><th>Status</th><th>Feedback</th><th>Date</th></tr></thead>
             <tbody></tbody>
           </table>
+          <div class="row" style="margin-top: 16px;">
+            <button id="exportReportBtn" class="btn primary">Export Report</button>
+          </div>
         </div>
       </div>
     </section>
@@ -366,8 +370,6 @@
   <script>
     // ====== CONFIG: Point this to your deployed Apps Script Web App URL ======
     const API_BASE = "https://script.google.com/macros/s/AKfycbxHMxFNXbnPZ_MQskkaPIiqJcqlGN7r1DVtLN_isEY6my4_AW1Wlc9CPhGni_SvrF7f0g/exec";
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     // --- State
     const state = {
@@ -521,7 +523,7 @@
         const tr = document.createElement('tr');
         const student = a.students.find(s => s.studentId === c.studentId);
         const asg = a.assignments.find(x => x.assignmentId === c.assignmentId);
-        tr.innerHTML = `<td>${new Date(c.createdAt).toLocaleString()}</td><td>${student ? student.studentName : ''}</td><td>${asg ? asg.title : ''}</td><td>${c.status}</td><td>${c.grade || ''}</td><td>${c.fileUrl ? `<a href="${c.fileUrl}" target="_blank">file</a>` : ''}</td>`;
+        tr.innerHTML = `<td>${new Date(c.createdAt).toLocaleString()}</td><td>${student ? student.studentName : ''}</td><td>${asg ? asg.title : ''}</td><td>${c.status}</td><td>${c.grade || ''}</td><td>${c.fileUrl ? `<a href="${c.fileUrl}" target="_blank">file</a>` : ''}`;
         rt.appendChild(tr);
       });
 
@@ -759,6 +761,46 @@
         `;
         gt.appendChild(tr);
       });
+      
+      // Add event listener for export button
+      $('#exportReportBtn').onclick = () => generateStudentReport(state.student);
+    }
+
+    // =====================
+    // PDF Generation
+    // =====================
+    function generateStudentReport(student) {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      // Title
+      doc.setFontSize(18);
+      doc.text("Student Report", 20, 20);
+
+      // Student info
+      doc.setFontSize(12);
+      doc.text(`Name: ${student.studentName || student.displayName || 'Student'}`, 20, 40);
+      doc.text(`Course: ${student.course || 'N/A'}`, 20, 50);
+
+      // Assignments
+      let y = 70;
+      doc.setFontSize(14);
+      doc.text("Assignments & Grades:", 20, y);
+      y += 10;
+
+      if (student.grades && student.grades.length) {
+        student.grades.forEach(g => {
+          doc.setFontSize(12);
+          doc.text(`${g.title} - Grade: ${g.grade}`, 20, y);
+          y += 10;
+        });
+      } else {
+        doc.text("No assignments available", 20, y);
+      }
+
+      // Save PDF
+      const name = (student.studentName || student.displayName || 'student').replace(/\s+/g, "_");
+      doc.save(`${name}_report.pdf`);
     }
 
     // --- Dashboard Loader
@@ -821,6 +863,7 @@
         if (demo) {
           state.student = {
             studentId: 'demo-student-1',
+            studentName: 'Demo Student',
             assignments: [
               { assignmentId: 'as1', title: 'Homework 5', course: 'Math', unit: 'U1', deadline: '2025-09-10', status: 'Pending' },
               { assignmentId: 'as2', title: 'Quiz 2 Review', course: 'Math', unit: 'U2', deadline: '2025-09-15', status: 'Submitted', hasSubmission: true, submission: { submissionId: 'sub1', submittedAt: new Date().toISOString(), version: 1 } }
@@ -1116,11 +1159,7 @@
       } catch (err) {
         alert('Failed to update submission: ' + err.message);
       }
-<button onclick="exportReport('${studentId}')"
-        class="bg-blue-600 text-white px-3 py-1 rounded mt-3">
-  Export Report
-</button>
-
+    };
   </script>
 </body>
 </html>
