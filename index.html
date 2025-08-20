@@ -261,6 +261,7 @@
             <h3>Roster</h3>
             <table class="table" id="h-roster">
               <thead><tr><th>Student</th><th>Assistant</th><th>Course</th><th>Unit</th></tr></thead>
+              <tbody></tbody>
             </table>
           </div>
         </div>
@@ -368,6 +369,7 @@
 
     // --- State
     const state = {
+      demo: false,
       user: null,
       assistant: { students: [], assignments: [], checks: [] },
       head: { assistants: [], students: [], assignments: [], analytics: {} },
@@ -418,8 +420,15 @@
       });
     }
 
+    // Helpers
+    const hasToken = () => !!localStorage.getItem('token');
+
     // --- API Wrapper
     async function api(action, payload = {}) {
+      if (state.demo && !hasToken()) {
+        // In demo mode we don't call the backend
+        return { ok: true, demo: true };
+      }
       const token = localStorage.getItem('token') || '';
       const body = new URLSearchParams();
       body.set('action', action);
@@ -430,12 +439,19 @@
         method: 'POST',
         body
       });
-      if (!res.ok) throw new Error('Network error');
+      if (!res.ok) {
+        if (res.status === 401) throw new Error('Unauthorized');
+        throw new Error('Network error');
+      }
       return await res.json();
     }
 
     // --- File Upload Handler (same as assistant tab)
     async function uploadFileBase64(file, studentId, assignmentId) {
+      if (state.demo && !hasToken()) {
+        // Simulate a successful upload in demo mode
+        return { ok: true, fileUrl: URL.createObjectURL(file) };
+      }
       const token = localStorage.getItem('token') || '';
       const buf = await file.arrayBuffer();
       const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
@@ -449,25 +465,10 @@
       body.set('mimeType', file.type || 'application/octet-stream');
       
       const res = await fetch(API_BASE, { method: 'POST', body });
-      if (!res.ok) throw new Error('Upload failed');
-      return await res.json();
-    }
-
-    // --- Student-specific file upload handler
-    async function uploadStudentFile(file, assignmentId) {
-      const token = localStorage.getItem('token') || '';
-      const buf = await file.arrayBuffer();
-      const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
-      const body = new URLSearchParams();
-      body.set('action', 'uploadStudentFile');
-      body.set('token', token);
-      body.set('assignmentId', assignmentId);
-      body.set('file64', b64);
-      body.set('filename', file.name);
-      body.set('mimeType', file.type || 'application/octet-stream');
-      
-      const res = await fetch(API_BASE, { method: 'POST', body });
-      if (!res.ok) throw new Error('Upload failed');
+      if (!res.ok) {
+        if (res.status === 401) throw new Error('Unauthorized');
+        throw new Error('Upload failed');
+      }
       return await res.json();
     }
 
@@ -722,7 +723,7 @@
                     <input type="file" id="update-file-${a.assignmentId}" accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg">
                   </div>
                   <button class="btn primary" onclick="updateSubmission('${a.submission.submissionId}', document.getElementById('update-file-${a.assignmentId}').files[0])">
-                   Update Submission
+                    Update Submission
                   </button>
                 ` : `
                   <div class="divider"></div>
@@ -761,6 +762,7 @@
     // --- Dashboard Loader
     async function loadRoleDash(demo = false) {
       if (!state.user) return;
+      state.demo = demo;
       
       switchView(state.user.role);
       
@@ -816,6 +818,7 @@
       else if (state.user.role === 'student') {
         if (demo) {
           state.student = {
+            studentId: 'demo-student-1',
             assignments: [
               { assignmentId: 'as1', title: 'Homework 5', course: 'Math', unit: 'U1', deadline: '2025-09-10', status: 'Pending' },
               { assignmentId: 'as2', title: 'Quiz 2 Review', course: 'Math', unit: 'U2', deadline: '2025-09-15', status: 'Submitted', hasSubmission: true, submission: { submissionId: 'sub1', submittedAt: new Date().toISOString(), version: 1 } }
@@ -839,10 +842,10 @@
       
       try {
         if (role === 'student') {
-          // Special handling for student login
-          state.user = { role: 'student', displayName: 'Student' };
+          // Special handling for student login (demo mode by default)
+          state.user = { role: 'student', displayName: 'Student', userId: `demo-student-${Math.random().toString(36).slice(2,7)}` };
           setChip();
-          await loadRoleDash(true); // Demo mode for now
+          await loadRoleDash(true); // Demo mode for now; avoids backend auth
           return;
         }
         
@@ -856,7 +859,7 @@
             $('#h-a-course').value = state.user.course || '';
           }
           
-          await loadRoleDash();
+          await loadRoleDash(false);
         } else {
           throw new Error('Invalid login');
         }
@@ -976,7 +979,7 @@
             $('#h-a-course').value = state.user.course || '';
           }
 
-          await loadRoleDash();
+          await loadRoleDash(false);
         } else {
           localStorage.removeItem('token');
           switchView();
@@ -997,13 +1000,31 @@
       }
       
       try {
-        // Use the student-specific upload function
-        const uploadRes = await uploadStudentFile(file, assignmentId);
+        const studentId = state.student.studentId || state.user.userId;
+
+        // Demo/local handling: avoid Unauthorized by bypassing backend
+        if (state.demo && !hasToken()) {
+          const assignment = state.student.assignments.find(a => a.assignmentId === assignmentId);
+          // Create an object URL so user can at least download during this session
+          const fakeUpload = { ok: true, fileUrl: URL.createObjectURL(file) };
+          assignment.status = 'Submitted';
+          assignment.hasSubmission = true;
+          assignment.submission = {
+            submissionId: `local-${assignmentId}-${Date.now()}`,
+            submittedAt: new Date().toISOString(),
+            version: (assignment.submission?.version || 0) + 1,
+            fileUrl: fakeUpload.fileUrl
+          };
+          renderStudent();
+          alert('Assignment submitted successfully! (Demo mode)');
+          return;
+        }
         
+        // Real backend flow
+        const uploadRes = await uploadFileBase64(file, studentId, assignmentId);
         if (!uploadRes || !uploadRes.ok) throw new Error(uploadRes?.error || 'Upload failed');
         if (!uploadRes.fileUrl) throw new Error('Upload returned no fileUrl');
         
-        // Now submit the assignment with the file URL
         const res = await api('submitAssignment', { 
           assignmentId, 
           file: {
@@ -1014,16 +1035,18 @@
         });
         
         if (res.ok) {
-          // Update the assignment status
           const assignment = state.student.assignments.find(a => a.assignmentId === assignmentId);
           if (assignment) {
             assignment.status = 'Submitted';
             assignment.hasSubmission = true;
-            assignment.submission = res.submission;
+            assignment.submission = res.submission || {
+              submissionId: `srv-${assignmentId}-${Date.now()}`,
+              submittedAt: new Date().toISOString(),
+              version: (assignment.submission?.version || 0) + 1,
+              fileUrl: uploadRes.fileUrl
+            };
           }
-          
-          // Refresh the student dashboard to show updated status
-          await loadRoleDash();
+          renderStudent();
           alert('Assignment submitted successfully!');
         }
       } catch (err) {
@@ -1038,20 +1061,32 @@
       }
       
       try {
-        // Find the assignment that has this submission
-        const assignment = state.student.assignments.find(a => 
+        const studentId = state.student.studentId || state.user.userId;
+        const assignmentId = state.student.assignments.find(a => 
           a.submission && a.submission.submissionId === submissionId
-        );
+        )?.assignmentId;
         
-        if (!assignment) throw new Error('Could not find assignment for this submission');
+        if (!assignmentId) throw new Error('Could not find assignment for this submission');
+
+        // Demo/local handling
+        if (state.demo && !hasToken()) {
+          const assignment = state.student.assignments.find(a => a.assignmentId === assignmentId);
+          assignment.submission = {
+            submissionId,
+            submittedAt: new Date().toISOString(),
+            version: (assignment.submission?.version || 1) + 1,
+            fileUrl: URL.createObjectURL(file)
+          };
+          renderStudent();
+          alert('Submission updated successfully! (Demo mode)');
+          return;
+        }
         
-        // Use the student-specific upload function
-        const uploadRes = await uploadStudentFile(file, assignment.assignmentId);
-        
+        // Real backend flow
+        const uploadRes = await uploadFileBase64(file, studentId, assignmentId);
         if (!uploadRes || !uploadRes.ok) throw new Error(uploadRes?.error || 'Upload failed');
         if (!uploadRes.fileUrl) throw new Error('Upload returned no fileUrl');
         
-        // Now update the submission with the new file URL
         const res = await api('updateSubmission', { 
           submissionId, 
           file: {
@@ -1062,11 +1097,18 @@
         });
         
         if (res.ok) {
-          // Update the submission in state
-          assignment.submission = res.submission;
-          
-          // Refresh the student dashboard to show updated status
-          await loadRoleDash();
+          for (let assignment of state.student.assignments) {
+            if (assignment.submission && assignment.submission.submissionId === submissionId) {
+              assignment.submission = res.submission || {
+                submissionId,
+                submittedAt: new Date().toISOString(),
+                version: (assignment.submission?.version || 1) + 1,
+                fileUrl: uploadRes.fileUrl
+              };
+              break;
+            }
+          }
+          renderStudent();
           alert('Submission updated successfully!');
         }
       } catch (err) {
