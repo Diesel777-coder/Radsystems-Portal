@@ -367,6 +367,8 @@
     // ====== CONFIG: Point this to your deployed Apps Script Web App URL ======
     const API_BASE = "https://script.google.com/macros/s/AKfycbxHMxFNXbnPZ_MQskkaPIiqJcqlGN7r1DVtLN_isEY6my4_AW1Wlc9CPhGni_SvrF7f0g/exec";
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
     // --- State
     const state = {
       demo: false,
@@ -1114,7 +1116,11 @@
       } catch (err) {
         alert('Failed to update submission: ' + err.message);
       }
-    };
+<button onclick="exportReport('${studentId}')"
+        class="bg-blue-600 text-white px-3 py-1 rounded mt-3">
+  Export Report
+</button>
+
   </script>
 </body>
 </html>
