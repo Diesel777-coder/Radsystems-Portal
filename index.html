@@ -71,6 +71,12 @@
     .file-link{color:var(--brand-blue);text-decoration:none;font-weight:500}
     .file-link:hover{text-decoration:underline}
 
+    /* Status indicators */
+    .status-message{padding:8px 12px;border-radius:8px;margin:8px 0}
+    .status-success{background-color:#D1FAE5;color:#065F46}
+    .status-error{background-color:#FEE2E2;color:#B91C1C}
+    .status-info{background-color:#DBEAFE;color:#1E40AF}
+
     @media (max-width: 960px){
       .grid.cols-3{grid-template-columns:1fr}
       .grid.cols-2{grid-template-columns:1fr}
@@ -112,6 +118,7 @@
           <button id="btnLogin" class="btn primary">Sign in</button>
           <button id="btnDemo" class="btn">Demo Login</button>
         </div>
+        <div id="loginStatus" class="status-message hidden"></div>
         <div class="muted" style="font-size:12px">No password for demo; Apps Script should validate email & role and mint a session token.</div>
       </div>
       <div class="card stack">
@@ -266,7 +273,6 @@
             <h3>Roster</h3>
             <table class="table" id="h-roster">
               <thead><tr><th>Student</th><th>Assistant</th><th>Course</th><th>Unit</th></tr></thead>
-              <tbody></tbody>
             </table>
           </div>
         </div>
@@ -382,6 +388,7 @@
 
   <script>
     // ====== CONFIG: Point this to your deployed Apps Script Web App URL ======
+    // Replace with your actual Apps Script Web App URL
     const API_BASE = "https://script.google.com/macros/s/AKfycbxHMxFNXbnPZ_MQskkaPIiqJcqlGN7r1DVtLN_isEY6my4_AW1Wlc9CPhGni_SvrF7f0g/exec";
 
     // --- State
@@ -442,51 +449,70 @@
 
     // --- API Wrapper
     async function api(action, payload = {}) {
-      if (state.demo && !hasToken()) {
-        // In demo mode we don't call the backend
+      // In demo mode we don't call the backend
+      if (state.demo) {
         return { ok: true, demo: true };
       }
+      
       const token = localStorage.getItem('token') || '';
-      const body = new URLSearchParams();
-      body.set('action', action);
-      body.set('payload', JSON.stringify(payload));
-      body.set('token', token);
+      try {
+        const body = new URLSearchParams();
+        body.set('action', action);
+        body.set('payload', JSON.stringify(payload));
+        body.set('token', token);
 
-      const res = await fetch(API_BASE, {
-        method: 'POST',
-        body
-      });
-      if (!res.ok) {
-        if (res.status === 401) throw new Error('Unauthorized');
-        throw new Error('Network error');
+        const res = await fetch(API_BASE, {
+          method: 'POST',
+          body
+        });
+        
+        if (!res.ok) {
+          if (res.status === 401) {
+            localStorage.removeItem('token');
+            throw new Error('Unauthorized - Please login again');
+          }
+          throw new Error(`Network error: ${res.status} ${res.statusText}`);
+        }
+        
+        const data = await res.json();
+        return data;
+      } catch (err) {
+        console.error('API Error:', err);
+        throw new Error(`Failed to connect to server: ${err.message}`);
       }
-      return await res.json();
     }
 
-    // --- File Upload Handler (same as assistant tab)
+    // --- File Upload Handler
     async function uploadFileBase64(file, studentId, assignmentId) {
-      if (state.demo && !hasToken()) {
+      if (state.demo) {
         // Simulate a successful upload in demo mode
         return { ok: true, fileUrl: URL.createObjectURL(file) };
       }
+      
       const token = localStorage.getItem('token') || '';
       const buf = await file.arrayBuffer();
       const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
-      const body = new URLSearchParams();
-      body.set('action', 'uploadFile');
-      body.set('token', token);
-      body.set('studentId', studentId);
-      body.set('assignmentId', assignmentId);
-      body.set('file64', b64);
-      body.set('filename', file.name);
-      body.set('mimeType', file.type || 'application/octet-stream');
       
-      const res = await fetch(API_BASE, { method: 'POST', body });
-      if (!res.ok) {
-        if (res.status === 401) throw new Error('Unauthorized');
-        throw new Error('Upload failed');
+      try {
+        const body = new URLSearchParams();
+        body.set('action', 'uploadFile');
+        body.set('token', token);
+        body.set('studentId', studentId);
+        body.set('assignmentId', assignmentId);
+        body.set('file64', b64);
+        body.set('filename', file.name);
+        body.set('mimeType', file.type || 'application/octet-stream');
+        
+        const res = await fetch(API_BASE, { method: 'POST', body });
+        if (!res.ok) {
+          if (res.status === 401) throw new Error('Unauthorized');
+          throw new Error('Upload failed');
+        }
+        return await res.json();
+      } catch (err) {
+        console.error('Upload error:', err);
+        throw new Error('Failed to upload file');
       }
-      return await res.json();
     }
 
     // --- Render Functions
@@ -852,51 +878,8 @@
       doc.text(`Pending Assignments: ${pending}/${total}`, 25, yPosition);
       yPosition += 8;
       
-      // Calculate overall performance
-      let overallPerformance = "Good";
-      if (completed > 0) {
-        const letterGrades = student.grades.map(g => {
-          const gradeValue = parseFloat(g.grade);
-          if (!isNaN(gradeValue)) {
-            if (gradeValue >= 90) return "A";
-            if (gradeValue >= 80) return "B";
-            if (gradeValue >= 70) return "C";
-            if (gradeValue >= 60) return "D";
-            return "F";
-          }
-          
-          // Handle fraction grades like "18/20"
-          if (g.grade.includes('/')) {
-            const parts = g.grade.split('/');
-            const numerator = parseFloat(parts[0]);
-            const denominator = parseFloat(parts[1]);
-            if (!isNaN(numerator) && !isNaN(denominator) && denominator > 0) {
-              const percentage = (numerator / denominator) * 100;
-              if (percentage >= 90) return "A";
-              if (percentage >= 80) return "B";
-              if (percentage >= 70) return "C";
-              if (percentage >= 60) return "D";
-              return "F";
-            }
-          }
-          return null;
-        }).filter(grade => grade !== null);
-        
-        if (letterGrades.length > 0) {
-          const gradePoints = {
-            "A": 4, "B": 3, "C": 2, "D": 1, "F": 0
-          };
-          
-          const totalPoints = letterGrades.reduce((sum, grade) => sum + gradePoints[grade], 0);
-          const average = totalPoints / letterGrades.length;
-          
-          if (average >= 3.5) overallPerformance = "Excellent";
-          else if (average >= 2.5) overallPerformance = "Good";
-          else if (average >= 1.5) overallPerformance = "Fair";
-          else overallPerformance = "Needs Improvement";
-        }
-      }
-      
+      // Use performance data from database if available, otherwise use default
+      const overallPerformance = student.performance || "Good";
       doc.text(`Overall Performance: ${overallPerformance}`, 25, yPosition);
 
       // Save PDF
@@ -930,8 +913,17 @@
             ]
           };
         } else {
-          const res = await api('getAssistantDashboard', {});
-          Object.assign(state.assistant, res);
+          try {
+            const res = await api('getAssistantDashboard', {});
+            if (res && res.ok) {
+              Object.assign(state.assistant, res);
+            } else {
+              throw new Error('Failed to load assistant dashboard');
+            }
+          } catch (err) {
+            showStatus('Failed to load assistant data: ' + err.message, 'error');
+            console.error(err);
+          }
         }
         renderAssistant();
       } 
@@ -955,8 +947,17 @@
             analytics: {}
           };
         } else {
-          const res = await api('getHeadDashboard', {});
-          Object.assign(state.head, res);
+          try {
+            const res = await api('getHeadDashboard', {});
+            if (res && res.ok) {
+              Object.assign(state.head, res);
+            } else {
+              throw new Error('Failed to load head dashboard');
+            }
+          } catch (err) {
+            showStatus('Failed to load head data: ' + err.message, 'error');
+            console.error(err);
+          }
         }
         renderHead();
       }
@@ -966,6 +967,7 @@
             studentId: 'S001',
             studentName: 'Student One',
             course: 'Biology 101',
+            performance: 'Good',
             assignments: [
               { assignmentId: 'as1', title: 'Homework 5', course: 'Math', unit: 'U1', deadline: '2025-09-10', status: 'Pending' },
               { assignmentId: 'as2', title: 'Quiz 2 Review', course: 'Math', unit: 'U2', deadline: '2025-09-15', status: 'Submitted', hasSubmission: true, submission: { submissionId: 'sub1', submittedAt: new Date().toISOString(), version: 1 } }
@@ -976,11 +978,33 @@
             ]
           };
         } else {
-          const res = await api('getStudentDashboard', {});
-          state.student = res;
+          try {
+            const res = await api('getStudentDashboard', {});
+            if (res && res.ok) {
+              state.student = res;
+            } else {
+              throw new Error('Failed to load student dashboard');
+            }
+          } catch (err) {
+            showStatus('Failed to load student data: ' + err.message, 'error');
+            console.error(err);
+          }
         }
         renderStudent();
       }
+    }
+
+    // Show status message
+    function showStatus(message, type = 'info') {
+      const statusEl = $('#loginStatus');
+      statusEl.textContent = message;
+      statusEl.className = `status-message status-${type}`;
+      show(statusEl);
+      
+      // Auto-hide after 5 seconds
+      setTimeout(() => {
+        hide(statusEl);
+      }, 5000);
     }
 
     // --- Event Handlers
@@ -988,14 +1012,14 @@
       const email = $('#loginEmail').value.trim();
       const role = $('#loginRole').value;
       
+      if (!email) {
+        showStatus('Please enter your email', 'error');
+        return;
+      }
+      
       try {
-        if (role === 'student') {
-          // Special handling for student login (demo mode by default)
-          state.user = { role: 'student', displayName: email.split('@')[0] || 'Student', userId: `demo-student-${Math.random().toString(36).slice(2,7)}` };
-          setChip();
-          await loadRoleDash(true); // Demo mode for now; avoids backend auth
-          return;
-        }
+        // Clear demo flag for real login
+        state.demo = false;
         
         const res = await api('login', { email, role });
         if (res && res.token) {
@@ -1008,11 +1032,27 @@
           }
           
           await loadRoleDash(false);
+          showStatus('Login successful!', 'success');
         } else {
-          throw new Error('Invalid login');
+          throw new Error('Invalid login response from server');
         }
       } catch (err) {
-        alert('Login failed (demo will still work via Demo Login)');
+        console.error('Login error:', err);
+        showStatus('Login failed: ' + err.message, 'error');
+        
+        // Fall back to demo mode if server is unavailable
+        if (err.message.includes('Failed to connect')) {
+          showStatus('Falling back to demo mode', 'info');
+          state.user = {
+            userId: `demo-${role}-${Math.random().toString(36).substr(2, 5)}`,
+            role: role,
+            displayName: email.split('@')[0] || `Demo ${role.charAt(0).toUpperCase() + role.slice(1)}`,
+            course: 'Mathematics',
+            email: email
+          };
+          setChip();
+          loadRoleDash(true);
+        }
       }
     });
 
@@ -1031,13 +1071,16 @@
       
       setChip();
       loadRoleDash(true); // true = demo mode
+      showStatus('Demo mode activated', 'info');
     });
 
     $('#logoutBtn').addEventListener('click', () => {
       localStorage.removeItem('token');
       state.user = null;
+      state.demo = false;
       setChip();
       switchView();
+      showStatus('Logged out successfully', 'success');
     });
 
     // Assistant submit flow
@@ -1074,9 +1117,10 @@
         }
         
         // Refresh data
-        await loadRoleDash(state.user.role === 'assistant' && !localStorage.getItem('token'));
+        await loadRoleDash(state.demo);
       } catch (err) {
         $('#a-submit-msg').textContent = 'Failed to save';
+        console.error('Submit error:', err);
       }
     });
 
@@ -1087,9 +1131,10 @@
       try {
         await api('reassignStudent', { studentId, assistantId });
         $('#h-reassign-msg').textContent = 'Reassigned ✅';
-        await loadRoleDash(!localStorage.getItem('token'));
+        await loadRoleDash(state.demo);
       } catch (err) {
         $('#h-reassign-msg').textContent = 'Failed';
+        console.error('Reassign error:', err);
       }
     });
 
@@ -1100,12 +1145,18 @@
       const unit = $('#h-a-unit').value.trim();
       const deadline = $('#h-a-deadline').value;
       
+      if (!title || !unit || !deadline) {
+        $('#h-create-msg').textContent = 'Please fill all fields';
+        return;
+      }
+      
       try {
         await api('createAssignment', { title, course, unit, deadline });
         $('#h-create-msg').textContent = 'Created ✅';
-        await loadRoleDash(!localStorage.getItem('token'));
+        await loadRoleDash(state.demo);
       } catch (err) {
         $('#h-create-msg').textContent = 'Failed';
+        console.error('Create assignment error:', err);
       }
     });
 
@@ -1117,7 +1168,10 @@
     // Auto-login on page load
     document.addEventListener('DOMContentLoaded', async () => {
       const token = localStorage.getItem('token');
-      if (!token) { switchView(); return; }
+      if (!token) { 
+        switchView(); 
+        return; 
+      }
       
       try {
         const res = await api('me');
@@ -1135,6 +1189,7 @@
           switchView();
         }
       } catch (e) {
+        console.error('Auto-login error:', e);
         localStorage.removeItem('token');
         switchView();
       }
@@ -1152,8 +1207,8 @@
       try {
         const studentId = state.student.studentId || state.user.userId;
 
-        // Demo/local handling: avoid Unauthorized by bypassing backend
-        if (state.demo && !hasToken()) {
+        // Demo/local handling: avoid backend calls in demo mode
+        if (state.demo) {
           const assignment = state.student.assignments.find(a => a.assignmentId === assignmentId);
           // Create an object URL so user can at least download during this session
           const fakeUpload = { ok: true, fileUrl: URL.createObjectURL(file) };
@@ -1219,7 +1274,7 @@
         if (!assignmentId) throw new Error('Could not find assignment for this submission');
 
         // Demo/local handling
-        if (state.demo && !hasToken()) {
+        if (state.demo) {
           const assignment = state.student.assignments.find(a => a.assignmentId === assignmentId);
           assignment.submission = {
             submissionId,
