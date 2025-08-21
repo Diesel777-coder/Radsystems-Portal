@@ -1,940 +1,1182 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RadSystems Portal - Student Management System</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RadSystems — Assistants & Heads Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    :root{
+      --bg:#FAFAF7; --card:#FFFFFF; --muted:#6B7280; --ink:#0F172A; --accent:#0EA5E9; --accent-2:#22C55E; --warn:#F59E0B; --danger:#EF4444; --border:#E5E7EB;
+      --brand-red:#E84545; --brand-blue:#1F3C88; --brand-green:#6BCB77;
+      --radius:16px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+    .container{max-width:1200px;margin:0 auto;padding:24px}
+    .app-header{display:flex;align-items:center;gap:12px;justify-content:space-between}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--brand-red),var(--brand-blue) 60%,var(--brand-green));box-shadow:0 6px 16px rgba(0,0,0,.08)}
+    .title{font-weight:800;letter-spacing:.3px}
+    .pill{font-size:12px;color:#fff;background:var(--brand-blue);padding:4px 8px;border-radius:999px}
+    .nav{display:flex;gap:8px}
+    .btn{appearance:none;border:1px solid var(--border);background:#fff;border-radius:12px;padding:10px 14px;font-weight:600;cursor:pointer;transition:.15s;}
+    .btn:hover{transform:translateY(-1px);box-shadow:0 8px 16px rgba(0,0,0,.06)}
+    .btn.primary{background:var(--brand-blue);border-color:var(--brand-blue);color:#fff}
+    .btn.ghost{background:transparent}
 
-        :root {
-            --bg: #FAFAF7;
-            --card: #FFFFFF;
-            --muted: #6B7280;
-            --ink: #0F172A;
-            --accent: #0EA5E9;
-            --accent-2: #22C55E;
-            --warn: #F59E0B;
-            --danger: #EF4444;
-            --border: #E5E7EB;
-            --brand-red: #E84545;
-            --brand-blue: #1F3C88;
-            --brand-green: #6BCB77;
-            --radius: 16px;
-        }
+    .grid{display:grid;gap:16px}
+    .grid.cols-3{grid-template-columns:repeat(3,1fr)}
+    .grid.cols-2{grid-template-columns:repeat(2,1fr)}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:0 8px 18px rgba(0,0,0,.04)}
+    .card h3{margin:0 0 8px}
+    .card h4{margin:0 0 6px}
+    .muted{color:var(--muted)}
+    .divider{height:1px;background:var(--border);margin:12px 0}
+    .row{display:flex;gap:12px;align-items:center}
 
-        body {
-            background: var(--bg);
-            color: var(--ink);
-            line-height: 1.6;
-        }
+    input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:#fff;color:var(--ink)}
+    label{font-size:12px;font-weight:600;color:#374151}
+    .field{display:flex;flex-direction:column;gap:6px}
+    .stack{display:flex;flex-direction:column;gap:10px}
+    .table{width:100%;border-collapse:collapse;border-radius:12px;overflow:hidden}
+    .table th,.table td{padding:10px 12px;border-bottom:1px solid var(--border);text-align:left;font-size:14px}
+    .badge{padding:4px 8px;border-radius:999px;font-size:12px;font-weight:700}
+    .badge.ok{background:rgba(34,197,94,.12);color:#15803D}
+    .badge.warn{background:rgba(245,158,11,.15);color:#B45309}
+    .badge.danger{background:rgba(239,68,68,.15);color:#991B1B}
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 24px;
-        }
+    .tabs{display:flex;gap:8px;border-bottom:1px solid var(--border);margin-bottom:12px}
+    .tab{padding:10px 14px;border:1px solid transparent;border-top-left-radius:12px;border-top-right-radius:12px;font-weight:700;color:#475569;cursor:pointer}
+    .tab.active{border-color:var(--border);border-bottom-color:var(--card);background:var(--card);color:#111827}
 
-        .app-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            justify-content: space-between;
-            margin-bottom: 18px;
-        }
+    .hidden{display:none !important}
+    .right{margin-left:auto}
+    .kpi{font-weight:800;font-size:28px}
 
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+    /* Assignment expansion styles */
+    .assignment-row{cursor:pointer;transition:background-color 0.2s}
+    .assignment-row:hover{background-color:#f8f9fa}
+    .assignment-details{background-color:#f8f9fa;border-radius:8px;padding:16px;margin:8px 0}
+    .assignment-expanded .other-assignments{display:none}
+    .expand-icon{transition:transform 0.3s}
+    .assignment-expanded .expand-icon{transform:rotate(180deg)}
 
-        .logo {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            background: linear-gradient(135deg, var(--brand-red), var(--brand-blue) 60%, var(--brand-green));
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-        }
+    /* File link styling */
+    .file-link{color:var(--brand-blue);text-decoration:none;font-weight:500}
+    .file-link:hover{text-decoration:underline}
 
-        .title {
-            font-weight: 800;
-            letter-spacing: 0.3px;
-            font-size: 24px;
-        }
-
-        .pill {
-            font-size: 12px;
-            color: #fff;
-            background: var(--brand-blue);
-            padding: 4px 8px;
-            border-radius: 999px;
-        }
-
-        .nav {
-            display: flex;
-            gap: 8px;
-        }
-
-        .btn {
-            appearance: none;
-            border: 1px solid var(--border);
-            background: #fff;
-            border-radius: 12px;
-            padding: 10px 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.15s;
-        }
-
-        .btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
-        }
-
-        .btn.primary {
-            background: var(--brand-blue);
-            border-color: var(--brand-blue);
-            color: #fff;
-        }
-
-        .btn.ghost {
-            background: transparent;
-        }
-
-        .grid {
-            display: grid;
-            gap: 16px;
-        }
-
-        .grid.cols-3 {
-            grid-template-columns: repeat(3, 1fr);
-        }
-
-        .grid.cols-2 {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        .card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 16px;
-            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.04);
-        }
-
-        .card h3 {
-            margin: 0 0 8px;
-        }
-
-        .card h4 {
-            margin: 0 0 6px;
-        }
-
-        .muted {
-            color: var(--muted);
-        }
-
-        .divider {
-            height: 1px;
-            background: var(--border);
-            margin: 12px 0;
-        }
-
-        .row {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-        }
-
-        input, select, textarea {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            background: #fff;
-            color: var(--ink);
-        }
-
-        label {
-            font-size: 12px;
-            font-weight: 600;
-            color: #374151;
-        }
-
-        .field {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .stack {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .table {
-            width: 100%;
-            border-collapse: collapse;
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        .table th, .table td {
-            padding: 10px 12px;
-            border-bottom: 1px solid var(--border);
-            text-align: left;
-            font-size: 14px;
-        }
-
-        .badge {
-            padding: 4px 8px;
-            border-radius: 999px;
-            font-size: 12px;
-            font-weight: 700;
-        }
-
-        .badge.ok {
-            background: rgba(34, 197, 94, 0.12);
-            color: #15803D;
-        }
-
-        .badge.warn {
-            background: rgba(245, 158, 11, 0.15);
-            color: #B45309;
-        }
-
-        .badge.danger {
-            background: rgba(239, 68, 68, 0.15);
-            color: #991B1B;
-        }
-
-        .tabs {
-            display: flex;
-            gap: 8px;
-            border-bottom: 1px solid var(--border);
-            margin-bottom: 12px;
-        }
-
-        .tab {
-            padding: 10px 14px;
-            border: 1px solid transparent;
-            border-top-left-radius: 12px;
-            border-top-right-radius: 12px;
-            font-weight: 700;
-            color: #475569;
-            cursor: pointer;
-        }
-
-        .tab.active {
-            border-color: var(--border);
-            border-bottom-color: var(--card);
-            background: var(--card);
-            color: #111827;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        .right {
-            margin-left: auto;
-        }
-
-        .kpi {
-            font-weight: 800;
-            font-size: 28px;
-        }
-
-        /* Assignment expansion styles */
-        .assignment-row {
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .assignment-row:hover {
-            background-color: #f8f9fa;
-        }
-
-        .assignment-details {
-            background-color: #f8f9fa;
-            border-radius: 8px;
-            padding: 16px;
-            margin: 8px 0;
-        }
-
-        .assignment-expanded .other-assignments {
-            display: none;
-        }
-
-        .expand-icon {
-            transition: transform 0.3s;
-        }
-
-        .assignment-expanded .expand-icon {
-            transform: rotate(180deg);
-        }
-
-        .export-btn {
-            background: var(--accent-2);
-            color: white;
-            margin-top: 15px;
-        }
-
-        @media (max-width: 960px) {
-            .grid.cols-3, .grid.cols-2 {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+    @media (max-width: 960px){
+      .grid.cols-3{grid-template-columns:1fr}
+      .grid.cols-2{grid-template-columns:1fr}
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <header class="app-header">
-            <div class="brand">
-                <div class="logo"></div>
-                <div>
-                    <div class="title">RadSystems Portal</div>
-                    <div class="muted" style="font-size:12px">Assistants & Heads Portal · Google Sheets backend</div>
-                </div>
+  <div class="container">
+    <header class="app-header">
+      <div class="brand"><div class="logo"></div><div>
+        <div class="title">RadSystems Portal</div>
+        <div class="muted" style="font-size:12px">Assistants & Heads Portal · Google Sheets backend</div>
+      </div></div>
+      <div class="row">
+        <span id="userChip" class="pill hidden"></span>
+        <button id="logoutBtn" class="btn ghost hidden">Logout</button>
+      </div>
+    </header>
+
+    <!-- AUTH -->
+    <section id="view-login" class="grid cols-2" style="margin-top:18px">
+      <div class="card stack">
+        <h3>Login</h3>
+        <div class="row" style="gap:8px">
+          <div class="field" style="flex:1">
+            <label>Email</label>
+            <input id="loginEmail" type="email" placeholder="assistant@school.edu"/>
+          </div>
+          <div class="field" style="width:180px">
+            <label>Role</label>
+            <select id="loginRole">
+              <option value="assistant">Assistant</option>
+              <option value="head">Head</option>
+              <option value="student">Student</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <button id="btnLogin" class="btn primary">Sign in</button>
+          <button id="btnDemo" class="btn">Demo Login</button>
+        </div>
+        <div class="muted" style="font-size:12px">No password for demo; Apps Script should validate email & role and mint a session token.</div>
+      </div>
+      <div class="card stack">
+        <h3>How it works</h3>
+        <ul class="muted" style="margin:0 0 6px 18px;line-height:1.5">
+          <li>Sign in as <b>Assistant</b> to see your students, active assignments, and submit checked papers.</li>
+          <li>Sign in as <b>Head</b> to assign/reassign students, create assignments, and view analytics.</li>
+          <li>Sign in as <b>Student</b> to view your assignments and grades.</li>
+          <li>All data persists to Google Sheets via Apps Script web app endpoints.</li>
+        </ul>
+        <div class="badge ok" style="width:max-content">Sheets-first · Secure · Simple</div>
+      </div>
+    </section>
+
+    <!-- ASSISTANT DASHBOARD -->
+    <section id="view-assistant" class="hidden" style="margin-top:18px">
+      <div class="tabs">
+        <div class="tab active" data-tab="a-home">Overview</div>
+        <div class="tab" data-tab="a-students">Students</div>
+        <div class="tab" data-tab="a-performance">Performance</div>
+      </div>
+
+      <div id="a-home" class="tab-pane">
+        <div class="grid cols-3">
+          <div class="card">
+            <div class="muted">My Students</div>
+            <div id="a-kpi-students" class="kpi">0</div>
+          </div>
+          <div class="card">
+            <div class="muted">Active Assignments</div>
+            <div id="a-kpi-assignments" class="kpi">0</div>
+          </div>
+          <div class="card">
+            <div class="muted">Checked This Week</div>
+            <div id="a-kpi-week" class="kpi">0</div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:16px">
+          <h3>Active Assignments</h3>
+          <table class="table" id="a-assignments-table">
+            <thead>
+              <tr><th>Assignment</th><th>Course</th><th>Unit</th><th>Deadline</th><th>Status</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="a-students" class="tab-pane hidden">
+        <div class="card">
+          <h3>Students · Submit Checked Paper</h3>
+          <div class="stack">
+            <div class="row">
+              <div class="field" style="flex:2">
+                <label>Student</label>
+                <select id="a-studentSelect"></select>
+              </div>
+              <div class="field" style="flex:2">
+                <label>Assignment</label>
+                <select id="a-assignmentSelect"></select>
+              </div>
+            </div>
+            <div class="grid cols-3">
+              <div class="field"><label>Status</label>
+                <select id="a-status">
+                  <option>Checked</option>
+                  <option>Missing</option>
+                  <option>Redo</option>
+                </select>
+              </div>
+              <div class="field"><label>Grade</label>
+                <input id="a-grade" type="text" placeholder="e.g. 18/20 or 90%"/>
+              </div>
+              <div class="field"><label>Upload File (PDF/Image)</label>
+                <input id="a-file" type="file" accept=".pdf,.png,.jpg,.jpeg,.webp"/>
+              </div>
+            </div>
+            <div class="field">
+              <label>Comment</label>
+              <textarea id="a-comment" rows="3" placeholder="Optional feedback..."></textarea>
             </div>
             <div class="row">
-                <span id="userChip" class="pill hidden"></span>
-                <button id="logoutBtn" class="btn ghost hidden">Logout</button>
+              <button id="a-submit" class="btn primary">Submit</button>
+              <div id="a-submit-msg" class="muted"></div>
             </div>
-        </header>
+          </div>
+        </div>
 
-        <main id="app">
-            <!-- Login View -->
-            <section id="view-login" class="grid cols-2">
-                <div class="card stack">
-                    <h3>Login</h3>
-                    <div class="row" style="gap:8px">
-                        <div class="field" style="flex:1">
-                            <label>Email</label>
-                            <input id="loginEmail" type="email" placeholder="assistant@school.edu"/>
-                        </div>
-                        <div class="field" style="width:180px">
-                            <label>Role</label>
-                            <select id="loginRole">
-                                <option value="assistant">Assistant</option>
-                                <option value="head">Head</option>
-                                <option value="student">Student</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <button id="btnLogin" class="btn primary">Sign in</button>
-                        <button id="btnDemo" class="btn">Demo Login</button>
-                    </div>
-                    <div class="muted" style="font-size:12px">No password for demo; Apps Script should validate email & role and mint a session token.</div>
-                </div>
-                <div class="card stack">
-                    <h3>How it works</h3>
-                    <ul class="muted" style="margin:0 0 6px 18px;line-height:1.5">
-                        <li>Sign in as <b>Assistant</b> to see your students, active assignments, and submit checked papers.</li>
-                        <li>Sign in as <b>Head</b> to assign/reassign students, create assignments, and view analytics.</li>
-                        <li>Sign in as <b>Student</b> to view your assignments and grades.</li>
-                        <li>All data persists to Google Sheets via Apps Script web app endpoints.</li>
-                    </ul>
-                    <div class="badge ok" style="width:max-content">Sheets-first · Secure · Simple</div>
-                </div>
-            </section>
+        <div class="card" style="margin-top:16px">
+          <h3>Recent Submissions</h3>
+          <table class="table" id="a-recent-table">
+            <thead><tr><th>When</th><th>Student</th><th>Assignment</th><th>Status</th><th>Grade</th><th>File</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
 
-            <!-- Assistant Dashboard -->
-            <section id="view-assistant" class="hidden">
-                <div class="tabs">
-                    <div class="tab active" data-tab="a-home">Overview</div>
-                    <div class="tab" data-tab="a-students">Students</div>
-                    <div class="tab" data-tab="a-performance">Performance</div>
-                </div>
+      <div id="a-performance" class="tab-pane hidden">
+        <div class="grid cols-2">
+          <div class="card">
+            <h3>Weekly Checks</h3>
+            <canvas id="a-line"></canvas>
+          </div>
+          <div class="card">
+            <h3>Status Breakdown</h3>
+            <canvas id="a-donut"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
 
-                <div id="a-home" class="tab-content active">
-                    <div class="grid cols-3">
-                        <div class="card">
-                            <div class="muted">My Students</div>
-                            <div id="a-kpi-students" class="kpi">0</div>
-                        </div>
-                        <div class="card">
-                            <div class="muted">Active Assignments</div>
-                            <div id="a-kpi-assignments" class="kpi">0</div>
-                        </div>
-                        <div class="card">
-                            <div class="muted">Checked This Week</div>
-                            <div id="a-kpi-week" class="kpi">0</div>
-                        </div>
-                    </div>
+    <!-- HEAD DASHBOARD -->
+    <section id="view-head" class="hidden" style="margin-top:18px">
+      <div class="tabs">
+        <div class="tab active" data-tab="h-home">Overview</div>
+        <div class="tab" data-tab="h-assign">Assign / Reassign</div>
+        <div class="tab" data-tab="h-assignments">Assignments</div>
+        <div class="tab" data-tab="h-analytics">Analytics</div>
+      </div>
 
-                    <div class="card" style="margin-top:16px">
-                        <h3>Active Assignments</h3>
-                        <table class="table" id="a-assignments-table">
-                            <thead>
-                                <tr><th>Assignment</th><th>Course</th><th>Unit</th><th>Deadline</th><th>Status</th></tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </div>
+      <div id="h-home" class="tab-pane">
+        <div class="grid cols-3">
+          <div class="card"><div class="muted">Assistants</div><div id="h-kpi-assistants" class="kpi">0</div></div>
+          <div class="card"><div class="muted">Students</div><div id="h-kpi-students" class="kpi">0</div></div>
+          <div class="card"><div class="muted">Active Assignments</div><div id="h-kpi-assignments" class="kpi">0</div></div>
+        </div>
+        <div class="card" style="margin-top:16px">
+          <h3>Checked Papers per Assistant (This Month)</h3>
+          <canvas id="h-bar"></canvas>
+        </div>
+      </div>
 
-                <div id="a-students" class="tab-content hidden">
-                    <div class="card">
-                        <h3>Students · Submit Checked Paper</h3>
-                        <div class="stack">
-                            <div class="row">
-                                <div class="field" style="flex:2">
-                                    <label>Student</label>
-                                    <select id="a-studentSelect"></select>
-                                </div>
-                                <div class="field" style="flex:2">
-                                    <label>Assignment</label>
-                                    <select id="a-assignmentSelect"></select>
-                                </div>
-                            </div>
-                            <div class="grid cols-3">
-                                <div class="field"><label>Status</label>
-                                    <select id="a-status">
-                                        <option>Checked</option>
-                                        <option>Missing</option>
-                                        <option>Redo</option>
-                                    </select>
-                                </div>
-                                <div class="field"><label>Grade</label>
-                                    <input id="a-grade" type="text" placeholder="e.g. 18/20 or 90%"/>
-                                </div>
-                                <div class="field"><label>Upload File (PDF/Image)</label>
-                                    <input id="a-file" type="file" accept=".pdf,.png,.jpg,.jpeg,.webp"/>
-                                </div>
-                            </div>
-                            <div class="field">
-                                <label>Comment</label>
-                                <textarea id="a-comment" rows="3" placeholder="Optional feedback..."></textarea>
-                            </div>
-                            <div class="row">
-                                <button id="a-submit" class="btn primary">Submit</button>
-                                <div id="a-submit-msg" class="muted"></div>
-                            </div>
-                        </div>
-                    </div>
+      <div id="h-assign" class="tab-pane hidden">
+        <div class="grid cols-2">
+          <div class="card">
+            <h3>Reassign Student</h3>
+            <div class="stack">
+              <div class="field"><label>Student</label>
+                <select id="h-studentSelect"></select>
+              </div>
+              <div class="field"><label>Assign to Assistant</label>
+                <select id="h-assistantSelect"></select>
+              </div>
+              <div class="row">
+                <button id="h-reassign" class="btn primary">Reassign</button>
+                <div id="h-reassign-msg" class="muted"></div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Roster</h3>
+            <table class="table" id="h-roster">
+              <thead><tr><th>Student</th><th>Assistant</th><th>Course</th><th>Unit</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
 
-                    <div class="card" style="margin-top:16px">
-                        <h3>Recent Submissions</h3>
-                        <table class="table" id="a-recent-table">
-                            <thead><tr><th>When</th><th>Student</th><th>Assignment</th><th>Status</th><th>Grade</th><th>File</th></tr></thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </div>
+      <div id="h-assignments" class="tab-pane hidden">
+        <div class="grid cols-2">
+          <div class="card">
+            <h3>Create Assignment</h3>
+            <div class="stack">
+              <div class="row">
+                <div class="field" style="flex:2"><label>Title</label><input id="h-a-title" placeholder="Homework 5"/></div>
+                <div class="field"><label>Course</label><input id="h-a-course" placeholder="Course" disabled></div>
+                <div class="field"><label>Unit</label><input id="h-a-unit" placeholder="Unit 3"/></div>
+              </div>
+              <div class="field"><label>Deadline</label><input id="h-a-deadline" type="date"></div>
+              <div class="row">
+                <button id="h-create-assignment" class="btn primary">Create</button>
+                <div id="h-create-msg" class="muted"></div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Active Assignments</h3>
+            <table class="table" id="h-assignments-table">
+              <thead><tr><th>Title</th><th>Course</th><th>Unit</th><th>Deadline</th><th>Toggle</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
 
-                <div id="a-performance" class="tab-content hidden">
-                    <div class="grid cols-2">
-                        <div class="card">
-                            <h3>Weekly Checks</h3>
-                            <canvas id="a-line"></canvas>
-                        </div>
-                        <div class="card">
-                            <h3>Status Breakdown</h3>
-                            <canvas id="a-donut"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </section>
+      <div id="h-analytics" class="tab-pane hidden">
+        <div class="grid cols-2">
+          <div class="card">
+            <h3>Status Breakdown</h3>
+            <canvas id="h-donut"></canvas>
+          </div>
+          <div class="card">
+            <h3>Student Performance (Avg Grade)</h3>
+            <canvas id="h-line"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
 
-            <!-- Head Dashboard -->
-            <section id="view-head" class="hidden">
-                <div class="tabs">
-                    <div class="tab active" data-tab="h-home">Overview</div>
-                    <div class="tab" data-tab="h-assign">Assign / Reassign</div>
-                    <div class="tab" data-tab="h-assignments">Assignments</div>
-                    <div class="tab" data-tab="h-analytics">Analytics</div>
-                </div>
+    <!-- STUDENT DASHBOARD -->
+    <section id="view-student" class="hidden" style="margin-top:18px">
+      <div class="tabs">
+        <div class="tab active" data-tab="s-home">My Assignments</div>
+        <div class="tab" data-tab="s-grades">Grades</div>
+      </div>
 
-                <div id="h-home" class="tab-content active">
-                    <div class="grid cols-3">
-                        <div class="card"><div class="muted">Assistants</div><div id="h-kpi-assistants" class="kpi">0</div></div>
-                        <div class="card"><div class="muted">Students</div><div id="h-kpi-students" class="kpi">0</div></div>
-                        <div class="card"><div class="muted">Active Assignments</div><div id="h-kpi-assignments" class="kpi">0</div></div>
-                    </div>
-                    <div class="card" style="margin-top:16px">
-                        <h3>Checked Papers per Assistant (This Month)</h3>
-                        <canvas id="h-bar"></canvas>
-                    </div>
-                </div>
+      <div id="s-home" class="tab-pane">
+        <div class="grid cols-3">
+          <div class="card">
+            <div class="muted">Active Assignments</div>
+            <div id="s-kpi-assignments" class="kpi">0</div>
+          </div>
+          <div class="card">
+            <div class="muted">Pending Submissions</div>
+            <div id="s-kpi-pending" class="kpi">0</div>
+          </div>
+          <div class="card">
+            <div class="muted">Graded Assignments</div>
+            <div id="s-kpi-graded" class="kpi">0</div>
+          </div>
+        </div>
 
-                <div id="h-assign" class="tab-content hidden">
-                    <div class="grid cols-2">
-                        <div class="card">
-                            <h3>Reassign Student</h3>
-                            <div class="stack">
-                                <div class="field"><label>Student</label>
-                                    <select id="h-studentSelect"></select>
-                                </div>
-                                <div class="field"><label>Assign to Assistant</label>
-                                    <select id="h-assistantSelect"></select>
-                                </div>
-                                <div class="row">
-                                    <button id="h-reassign" class="btn primary">Reassign</button>
-                                    <div id="h-reassign-msg" class="muted"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card">
-                            <h3>Roster</h3>
-                            <table class="table" id="h-roster">
-                                <thead><tr><th>Student</th><th>Assistant</th><th>Course</th><th>Unit</th></tr></thead>
-                                <tbody></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
+        <div class="card" style="margin-top:16px">
+          <h3>Current Assignments</h3>
+          <div id="s-assignments-container">
+            <table class="table" id="s-assignments-table">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>Assignment</th>
+                  <th>Course</th>
+                  <th>Unit</th>
+                  <th>Deadline</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="s-assignments-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
 
-                <div id="h-assignments" class="tab-content hidden">
-                    <div class="grid cols-2">
-                        <div class="card">
-                            <h3>Create Assignment</h3>
-                            <div class="stack">
-                                <div class="row">
-                                    <div class="field" style="flex:2"><label>Title</label><input id="h-a-title" placeholder="Homework 5"/></div>
-                                    <div class="field"><label>Course</label><input id="h-a-course" placeholder="Course" disabled></div>
-                                    <div class="field"><label>Unit</label><input id="h-a-unit" placeholder="Unit 3"/></div>
-                                </div>
-                                <div class="field"><label>Deadline</label><input id="h-a-deadline" type="date"></div>
-                                <div class="row">
-                                    <button id="h-create-assignment" class="btn primary">Create</button>
-                                    <div id="h-create-msg" class="muted"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card">
-                            <h3>Active Assignments</h3>
-                            <table class="table" id="h-assignments-table">
-                                <thead><tr><th>Title</th><th>Course</th><th>Unit</th><th>Deadline</th><th>Toggle</th></tr></thead>
-                                <tbody></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
+      <div id="s-grades" class="tab-pane hidden">
+        <div class="card">
+          <h3>Grade History</h3>
+          <table class="table" id="s-grades-table">
+            <thead>
+              <tr>
+                <th>Assignment</th>
+                <th>Grade</th>
+                <th>Status</th>
+                <th>Feedback</th>
+                <th>File</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div class="row" style="margin-top: 16px;">
+            <button id="exportReportBtn" class="btn primary">Export Report</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
 
-                <div id="h-analytics" class="tab-content hidden">
-                    <div class="grid cols-2">
-                        <div class="card">
-                            <h3>Status Breakdown</h3>
-                            <canvas id="h-donut"></canvas>
-                        </div>
-                        <div class="card">
-                            <h3>Student Performance (Avg Grade)</h3>
-                            <canvas id="h-line"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </section>
+  <script>
+    // ====== CONFIG: Point this to your deployed Apps Script Web App URL ======
+    const API_BASE = "https://script.google.com/macros/s/AKfycbxHMxFNXbnPZ_MQskkaPIiqJcqlGN7r1DVtLN_isEY6my4_AW1Wlc9CPhGni_SvrF7f0g/exec";
 
-            <!-- Student Dashboard -->
-            <section id="view-student" class="hidden">
-                <div class="tabs">
-                    <div class="tab active" data-tab="s-home">My Assignments</div>
-                    <div class="tab" data-tab="s-grades">Grades</div>
-                </div>
+    // --- State
+    const state = {
+      demo: false,
+      user: null,
+      assistant: { students: [], assignments: [], checks: [] },
+      head: { assistants: [], students: [], assignments: [], analytics: {} },
+      student: { assignments: [], grades: [], expandedAssignment: null }
+    };
 
-                <div id="s-home" class="tab-content active">
-                    <div class="grid cols-3">
-                        <div class="card">
-                            <div class="muted">Active Assignments</div>
-                            <div id="s-kpi-assignments" class="kpi">0</div>
-                        </div>
-                        <div class="card">
-                            <div class="muted">Pending Submissions</div>
-                            <div id="s-kpi-pending" class="kpi">0</div>
-                        </div>
-                        <div class="card">
-                            <div class="muted">Graded Assignments</div>
-                            <div id="s-kpi-graded" class="kpi">0</div>
-                        </div>
-                    </div>
+    // --- UI Helpers
+    const $ = sel => document.querySelector(sel);
+    const $$ = sel => Array.from(document.querySelectorAll(sel));
 
-                    <div class="card" style="margin-top:16px">
-                        <h3>Current Assignments</h3>
-                        <div id="s-assignments-container">
-                            <table class="table" id="s-assignments-table">
-                                <thead>
-                                    <tr>
-                                        <th></th>
-                                        <th>Assignment</th>
-                                        <th>Course</th>
-                                        <th>Unit</th>
-                                        <th>Deadline</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="s-assignments-body"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
+    function show(el) { el.classList.remove('hidden'); }
+    function hide(el) { el.classList.add('hidden'); }
 
-                <div id="s-grades" class="tab-content hidden">
-                    <div class="card">
-                        <h3>Grade History</h3>
-                        <table class="table" id="s-grades-table">
-                            <thead><tr><th>Assignment</th><th>Grade</th><th>Status</th><th>Feedback</th><th>Date</th></tr></thead>
-                            <tbody></tbody>
-                        </table>
-                        <button class="btn export-btn" onclick="generateStudentReport(state.student || state.user)">
-                            <i class="fas fa-download"></i> Export Report as PDF
-                        </button>
-                    </div>
-                </div>
-            </section>
-        </main>
-    </div>
+    function setChip() {
+      const chip = $('#userChip');
+      if (state.user) {
+        chip.textContent = `${state.user.displayName} · ${state.user.role}`;
+        chip.classList.remove('hidden');
+        $('#logoutBtn').classList.remove('hidden');
+      } else {
+        chip.classList.add('hidden');
+        $('#logoutBtn').classList.add('hidden');
+      }
+    }
 
-    <script>
-        // State Management
-        let state = {
-            user: null,
-            students: [],
-            student: null,
-            currentTab: "dashboard",
-            assignments: [
-                { id: 1, title: "Biology Essay", course: "Biology 101", deadline: "2023-10-15", status: "submitted", grade: "A" },
-                { id: 2, title: "Math Problem Set", course: "Mathematics 202", deadline: "2023-10-20", status: "pending", grade: "B+" },
-                { id: 3, title: "Chemistry Lab Report", course: "Chemistry 105", deadline: "2023-10-25", status: "missing", grade: null }
-            ]
-        };
+    function switchView(role) {
+      hide($('#view-login'));
+      hide($('#view-assistant'));
+      hide($('#view-head'));
+      hide($('#view-student'));
+      
+      if (role === 'assistant') show($('#view-assistant'));
+      else if (role === 'head') show($('#view-head'));
+      else if (role === 'student') show($('#view-student'));
+      else show($('#view-login'));
+    }
 
-        // Authentication Functions
-        function login(role) {
-            state.user = { 
-                role, 
-                name: role === "teacher" ? "Dr. John Smith" : "Student One", 
-                course: "Biology 101",
-                id: role === "teacher" ? "T001" : "S001"
+    // --- Tabs
+    function initTabs(container) {
+      $$(`${container} .tab`).forEach(tab => {
+        tab.addEventListener('click', () => {
+          $$(`${container} .tab`).forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          const pane = $(`#${tab.dataset.tab}`);
+          $$(`${container} .tab-pane`).forEach(p => hide(p));
+          show(pane);
+        });
+      });
+    }
+
+    // Helpers
+    const hasToken = () => !!localStorage.getItem('token');
+
+    // --- API Wrapper
+    async function api(action, payload = {}) {
+      if (state.demo && !hasToken()) {
+        // In demo mode we don't call the backend
+        return { ok: true, demo: true };
+      }
+      const token = localStorage.getItem('token') || '';
+      const body = new URLSearchParams();
+      body.set('action', action);
+      body.set('payload', JSON.stringify(payload));
+      body.set('token', token);
+
+      const res = await fetch(API_BASE, {
+        method: 'POST',
+        body
+      });
+      if (!res.ok) {
+        if (res.status === 401) throw new Error('Unauthorized');
+        throw new Error('Network error');
+      }
+      return await res.json();
+    }
+
+    // --- File Upload Handler (same as assistant tab)
+    async function uploadFileBase64(file, studentId, assignmentId) {
+      if (state.demo && !hasToken()) {
+        // Simulate a successful upload in demo mode
+        return { ok: true, fileUrl: URL.createObjectURL(file) };
+      }
+      const token = localStorage.getItem('token') || '';
+      const buf = await file.arrayBuffer();
+      const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
+      const body = new URLSearchParams();
+      body.set('action', 'uploadFile');
+      body.set('token', token);
+      body.set('studentId', studentId);
+      body.set('assignmentId', assignmentId);
+      body.set('file64', b64);
+      body.set('filename', file.name);
+      body.set('mimeType', file.type || 'application/octet-stream');
+      
+      const res = await fetch(API_BASE, { method: 'POST', body });
+      if (!res.ok) {
+        if (res.status === 401) throw new Error('Unauthorized');
+        throw new Error('Upload failed');
+      }
+      return await res.json();
+    }
+
+    // --- Render Functions
+    function renderAssistant() {
+      const a = state.assistant;
+      
+      $('#a-kpi-students').textContent = a.students.length;
+      $('#a-kpi-assignments').textContent = a.assignments.filter(x => x.isActive).length;
+      $('#a-kpi-week').textContent = a.checks.filter(x => {
+        const recent = Date.now() - new Date(x.createdAt).getTime() < 7 * 86400e3;
+        const ok = (x.status || '').trim().toLowerCase() !== 'missing';
+        return recent && ok;
+      }).length;
+
+      // Render assignments table
+      const tb = $('#a-assignments-table tbody');
+      tb.innerHTML = '';
+      a.assignments.forEach(x => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${x.title}</td><td>${x.course}</td><td>${x.unit}</td><td>${x.deadline}</td><td>${x.isActive ? '<span class="badge ok">Active</span>' : '<span class="badge warn">Closed</span>'}`;
+        tb.appendChild(tr);
+      });
+
+      // Render student and assignment selects
+      const sSel = $('#a-studentSelect');
+      sSel.innerHTML = '';
+      a.students.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.studentId;
+        opt.textContent = s.studentName;
+        sSel.appendChild(opt);
+      });
+
+      const asSel = $('#a-assignmentSelect');
+      asSel.innerHTML = '';
+      a.assignments.filter(x => x.isActive).forEach(x => {
+        const opt = document.createElement('option');
+        opt.value = x.assignmentId;
+        opt.textContent = `${x.title} · ${x.unit}`;
+        asSel.appendChild(opt);
+      });
+
+      // Render recent submissions table
+      const rt = $('#a-recent-table tbody');
+      rt.innerHTML = '';
+      a.checks.slice(-10).reverse().forEach(c => {
+        const tr = document.createElement('tr');
+        const student = a.students.find(s => s.studentId === c.studentId);
+        const asg = a.assignments.find(x => x.assignmentId === c.assignmentId);
+        tr.innerHTML = `<td>${new Date(c.createdAt).toLocaleString()}</td><td>${student ? student.studentName : ''}</td><td>${asg ? asg.title : ''}</td><td>${c.status}</td><td>${c.grade || ''}</td><td>${c.fileUrl ? `<a href="${c.fileUrl}" target="_blank" class="file-link">View File</a>` : '—'}`;
+        rt.appendChild(tr);
+      });
+
+      // Render charts
+      const ctx1 = $('#a-line');
+      if (ctx1._chart) ctx1._chart.destroy();
+      ctx1._chart = new Chart(ctx1, {
+        type: 'line',
+        data: {
+          labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+          datasets: [{ label: 'Checks', data: [2, 3, 4, 2, 5, 1, 0] }]
+        }
+      });
+
+      const ctx2 = $('#a-donut');
+      if (ctx2._chart) ctx2._chart.destroy();
+      const st = { Checked: 0, Missing: 0, Redo: 0 };
+      a.checks.forEach(c => { st[c.status] = (st[c.status] || 0) + 1 });
+      ctx2._chart = new Chart(ctx2, {
+        type: 'doughnut',
+        data: { labels: Object.keys(st), datasets: [{ data: Object.values(st) }] }
+      });
+    }
+
+    function renderHead() {
+      const h = state.head;
+      
+      $('#h-kpi-assistants').textContent = h.assistants.length;
+      $('#h-kpi-students').textContent = h.students.length;
+      $('#h-kpi-assignments').textContent = h.assignments.filter(x => x.isActive).length;
+
+      // Render roster table
+      const rt = $('#h-roster tbody');
+      rt.innerHTML = '';
+      h.students.forEach(s => {
+        const asst = h.assistants.find(a => a.userId === s.assistantId);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${s.studentName}</td><td>${asst ? asst.displayName : '—'}</td><td>${s.course}</td><td>${s.unit}</td>`;
+        rt.appendChild(tr);
+      });
+
+      // Render selects
+      const sSel = $('#h-studentSelect');
+      sSel.innerHTML = '';
+      h.students.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.studentId;
+        opt.textContent = `${s.studentName} · ${s.unit}`;
+        sSel.appendChild(opt);
+      });
+
+      const aSel = $('#h-assistantSelect');
+      aSel.innerHTML = '';
+      h.assistants.forEach(a => {
+        const opt = document.createElement('option');
+        opt.value = a.userId;
+        opt.textContent = a.displayName;
+        aSel.appendChild(opt);
+      });
+
+      // Render assignments table
+      const at = $('#h-assignments-table tbody');
+      at.innerHTML = '';
+      h.assignments.forEach(x => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${x.title}</td><td>${x.course}</td><td>${x.unit}</td><td>${x.deadline}</td>
+          <td><label class="row" style="gap:8px"><input type="checkbox" ${x.isActive ? 'checked' : ''} data-id="${x.assignmentId}" class="h-toggle"> ${x.isActive ? '<span class="badge ok">Active</span>' : '<span class="badge warn">Closed</span>'}</label></td>`;
+        at.appendChild(tr);
+      });
+
+      // Add toggle handlers
+      $$('.h-toggle').forEach(cb => {
+        cb.addEventListener('change', async (e) => {
+          const assignmentId = e.target.dataset.id;
+          try {
+            await api('toggleAssignment', { assignmentId, isActive: e.target.checked });
+          } catch (err) {
+            alert('Failed to toggle assignment');
+          }
+        });
+      });
+
+      // Render charts
+      const ctx = $('#h-bar');
+      if (ctx._chart) ctx._chart.destroy();
+      const assistNames = h.assistants.map(a => a.displayName);
+      const counts = assistNames.map(name => Math.floor(Math.random() * 30) + 5); // demo data
+      ctx._chart = new Chart(ctx, {
+        type: 'bar',
+        data: { labels: assistNames, datasets: [{ label: 'Checked papers', data: counts }] }
+      });
+
+      const d1 = $('#h-donut');
+      if (d1._chart) d1._chart.destroy();
+      d1._chart = new Chart(d1, {
+        type: 'doughnut',
+        data: { labels: ['Checked', 'Missing', 'Redo'], datasets: [{ data: [60, 25, 15] }] }
+      });
+
+      const l1 = $('#h-line');
+      if (l1._chart) l1._chart.destroy();
+      l1._chart = new Chart(l1, {
+        type: 'line',
+        data: { labels: ['W1', 'W2', 'W3', 'W4'], datasets: [{ label: 'Avg Grade', data: [72, 78, 81, 85] }] }
+      });
+    }
+
+    // Toggle assignment expansion
+    function toggleAssignmentExpansion(assignmentId) {
+      if (state.student.expandedAssignment === assignmentId) {
+        state.student.expandedAssignment = null;
+        $('#s-assignments-container').classList.remove('assignment-expanded');
+      } else {
+        state.student.expandedAssignment = assignmentId;
+        $('#s-assignments-container').classList.add('assignment-expanded');
+        // Load assignment details if not already loaded
+        loadAssignmentDetails(assignmentId);
+      }
+      renderStudent();
+    }
+
+    // Load assignment details
+    async function loadAssignmentDetails(assignmentId) {
+      try {
+        const res = await api('getAssignmentDetails', { assignmentId });
+        if (res.ok) {
+          // Update the assignment in state
+          const index = state.student.assignments.findIndex(a => a.assignmentId === assignmentId);
+          if (index !== -1) {
+            state.student.assignments[index] = { 
+              ...state.student.assignments[index], 
+              ...res.assignment,
+              submission: res.submission 
             };
-            render();
+          }
+          renderStudent();
         }
+      } catch (err) {
+        console.error('Failed to load assignment details:', err);
+      }
+    }
 
-        function logout() {
-            state.user = null;
-            state.students = [];
-            state.student = null;
-            render();
-        }
+    function renderStudent() {
+      const s = state.student;
+      $('#s-kpi-assignments').textContent = s.assignments.length;
+      $('#s-kpi-pending').textContent = s.assignments.filter(a => a.status === 'Pending').length;
+      $('#s-kpi-graded').textContent = s.grades.length;
 
-        // Rendering Functions
-        function render() {
-            if (!state.user) {
-                renderLogin();
-                return;
+      // Assignments table
+      const tbody = $('#s-assignments-body'); 
+      tbody.innerHTML = '';
+      
+      s.assignments.forEach(a => {
+        const isExpanded = state.student.expandedAssignment === a.assignmentId;
+        
+        // Main assignment row
+        const tr = document.createElement('tr');
+        tr.className = `assignment-row ${isExpanded ? 'expanded' : ''}`;
+        tr.innerHTML = `
+          <td>
+            <span class="expand-icon">▼</span>
+          </td>
+          <td>${a.title}</td>
+          <td>${a.course}</td>
+          <td>${a.unit}</td>
+          <td>${a.deadline}</td>
+          <td>
+            ${a.status === 'Pending' ? 
+              '<span class="badge warn">Pending</span>' : 
+              '<span class="badge ok">Submitted</span>'
             }
-            
-            // Hide all views first
-            document.getElementById("view-login").classList.add("hidden");
-            document.getElementById("view-assistant").classList.add("hidden");
-            document.getElementById("view-head").classList.add("hidden");
-            document.getElementById("view-student").classList.add("hidden");
-            
-            if (state.user.role === "teacher" || state.user.role === "assistant") {
-                renderTeacher();
-            } else if (state.user.role === "head") {
-                renderHead();
-            } else {
-                renderStudent();
+          </td>
+        `;
+        
+        tr.addEventListener('click', () => toggleAssignmentExpansion(a.assignmentId));
+        tbody.appendChild(tr);
+        
+        // Expanded details row
+        if (isExpanded) {
+          const detailRow = document.createElement('tr');
+          detailRow.className = 'assignment-detail-row';
+          detailRow.innerHTML = `
+            <td colspan="6">
+              <div class="assignment-details">
+                <h4>${a.title}</h4>
+                <p><strong>Course:</strong> ${a.course} | <strong>Unit:</strong> ${a.unit}</p>
+                <p><strong>Deadline:</strong> ${a.deadline}</p>
+                <p><strong>Status:</strong> ${a.status}</p>
+                
+                ${a.submission ? `
+                  <div class="divider"></div>
+                  <h4>Your Submission</h4>
+                  <p><strong>Submitted:</strong> ${new Date(a.submission.submittedAt).toLocaleString()}</p>
+                  <p><strong>Version:</strong> ${a.submission.version}</p>
+                  ${a.submission.fileUrl ? `<p><strong>File:</strong> <a href="${a.submission.fileUrl}" target="_blank" class="file-link">Download</a></p>` : ''}
+                  
+                  <div class="divider"></div>
+                  <h4>Update Submission</h4>
+                  <div class="field">
+                    <label>Upload New File</label>
+                    <input type="file" id="update-file-${a.assignmentId}" accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg">
+                  </div>
+                  <button class="btn primary" onclick="updateSubmission('${a.submission.submissionId}', document.getElementById('update-file-${a.assignmentId}').files[0])">
+                    Update Submission
+                  </button>
+                ` : `
+                  <div class="divider"></div>
+                  <h4>Submit Your Work</h4>
+                  <div class="field">
+                    <label>Upload File</label>
+                    <input type="file" id="submit-file-${a.assignmentId}" accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg">
+                  </div>
+                  <button class="btn primary" onclick="submitAssignment('${a.assignmentId}', document.getElementById('submit-file-${a.assignmentId}').files[0])">
+                    Submit Assignment
+                  </button>
+                `}
+              </div>
+            </td>
+          `;
+          tbody.appendChild(detailRow);
+        }
+      });
+
+      // Grades table - now includes File column
+      const gt = $('#s-grades-table tbody'); 
+      gt.innerHTML = '';
+      s.grades.forEach(g => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${g.title}</td>
+          <td>${g.grade}</td>
+          <td>${g.status === 'Graded' ? '<span class="badge ok">Graded</span>' : ''}</td>
+          <td>${g.feedback || '—'}</td>
+          <td>${g.fileUrl ? `<a href="${g.fileUrl}" target="_blank" class="file-link">View File</a>` : '—'}</td>
+          <td>${g.date}</td>
+        `;
+        gt.appendChild(tr);
+      });
+      
+      // Add event listener for export button
+      $('#exportReportBtn').onclick = () => generateStudentReport(state.student);
+    }
+
+    // =====================
+    // PDF Generation
+    // =====================
+    function generateStudentReport(student) {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      // Title
+      doc.setFontSize(18);
+      doc.text("Student Report", 20, 20);
+
+      // Student info
+      doc.setFontSize(12);
+      doc.text(`Name: ${student.studentName || student.displayName || 'Student'}`, 20, 40);
+      doc.text(`Course: ${student.course || 'N/A'}`, 20, 50);
+
+      // Assignments
+      let y = 70;
+      doc.setFontSize(14);
+      doc.text("Assignments & Grades:", 20, y);
+      y += 10;
+
+      if (student.grades && student.grades.length) {
+        student.grades.forEach(g => {
+          doc.setFontSize(12);
+          doc.text(`${g.title} - Grade: ${g.grade}`, 20, y);
+          y += 10;
+        });
+      } else {
+        doc.text("No assignments available", 20, y);
+      }
+
+      // Save PDF
+      const name = (student.studentName || student.displayName || 'student').replace(/\s+/g, "_");
+      doc.save(`${name}_report.pdf`);
+    }
+
+    // --- Dashboard Loader
+    async function loadRoleDash(demo = false) {
+      if (!state.user) return;
+      state.demo = demo;
+      
+      switchView(state.user.role);
+      
+      if (state.user.role === 'assistant') {
+        if (demo) {
+          state.assistant = {
+            students: [
+              { studentId: 's1', studentName: 'Omar Hassan', course: 'Math', unit: 'U1' },
+              { studentId: 's2', studentName: 'Mariam Adel', course: 'Math', unit: 'U1' },
+              { studentId: 's3', studentName: 'Youssef N.', course: 'Math', unit: 'U2' }
+            ],
+            assignments: [
+              { assignmentId: 'as1', title: 'Homework 5', course: 'Math', unit: 'U1', deadline: '2025-09-10', isActive: true },
+              { assignmentId: 'as2', title: 'Quiz 2 Review', course: 'Math', unit: 'U2', deadline: '2025-09-15', isActive: true },
+              { assignmentId: 'as3', title: 'Worksheet 7', course: 'Math', unit: 'U1', deadline: '2025-08-30', isActive: false }
+            ],
+            checks: [
+              { checkId: 'c1', assignmentId: 'as1', studentId: 's1', status: 'Checked', grade: '18/20', fileUrl: 'https://example.com/file1.pdf', createdAt: new Date(Date.now() - 2 * 86400e3).toISOString() },
+              { checkId: 'c2', assignmentId: 'as1', studentId: 's2', status: 'Redo', grade: '', fileUrl: '', createdAt: new Date(Date.now() - 1 * 86400e3).toISOString() }
+            ]
+          };
+        } else {
+          const res = await api('getAssistantDashboard', {});
+          Object.assign(state.assistant, res);
+        }
+        renderAssistant();
+      } 
+      else if (state.user.role === 'head') {
+        if (demo) {
+          state.head = {
+            assistants: [
+              { userId: 'a-1', displayName: 'Sara Ali' },
+              { userId: 'a-2', displayName: 'Khaled Samir' },
+              { userId: 'a-3', displayName: 'Noura H.' }
+            ],
+            students: [
+              { studentId: 's1', studentName: 'Omar Hassan', course: 'Math', unit: 'U1', assistantId: 'a-1' },
+              { studentId: 's2', studentName: 'Mariam Adel', course: 'Math', unit: 'U1', assistantId: 'a-2' },
+              { studentId: 's3', studentName: 'Youssef N.', course: 'Math', unit: 'U2', assistantId: 'a-1' }
+            ],
+            assignments: [
+              { assignmentId: 'as1', title: 'Homework 5', course: 'Math', unit: 'U1', deadline: '2025-09-10', isActive: true },
+              { assignmentId: 'as2', title: 'Quiz 2 Review', course: 'Math', unit: 'U2', deadline: '2025-09-15', isActive: true }
+            ],
+            analytics: {}
+          };
+        } else {
+          const res = await api('getHeadDashboard', {});
+          Object.assign(state.head, res);
+        }
+        renderHead();
+      }
+      else if (state.user.role === 'student') {
+        if (demo) {
+          state.student = {
+            studentId: 'demo-student-1',
+            studentName: 'Demo Student',
+            assignments: [
+              { assignmentId: 'as1', title: 'Homework 5', course: 'Math', unit: 'U1', deadline: '2025-09-10', status: 'Pending' },
+              { assignmentId: 'as2', title: 'Quiz 2 Review', course: 'Math', unit: 'U2', deadline: '2025-09-15', status: 'Submitted', hasSubmission: true, submission: { submissionId: 'sub1', submittedAt: new Date().toISOString(), version: 1 } }
+            ],
+            grades: [
+              { assignmentId: 'as3', title: 'Worksheet 7', grade: '18/20', status: 'Graded', feedback: 'Good work!', fileUrl: 'https://example.com/feedback1.pdf', date: '2025-08-28' },
+              { assignmentId: 'as4', title: 'Homework 4', grade: '16/20', status: 'Graded', feedback: 'Please review chapter 3', fileUrl: 'https://example.com/feedback2.pdf', date: '2025-08-20' }
+            ]
+          };
+        } else {
+          const res = await api('getStudentDashboard', {});
+          state.student = res;
+        }
+        renderStudent();
+      }
+    }
+
+    // --- Event Handlers
+    $('#btnLogin').addEventListener('click', async () => {
+      const email = $('#loginEmail').value.trim();
+      const role = $('#loginRole').value;
+      
+      try {
+        if (role === 'student') {
+          // Special handling for student login (demo mode by default)
+          state.user = { role: 'student', displayName: email.split('@')[0] || 'Student', userId: `demo-student-${Math.random().toString(36).slice(2,7)}` };
+          setChip();
+          await loadRoleDash(true); // Demo mode for now; avoids backend auth
+          return;
+        }
+        
+        const res = await api('login', { email, role });
+        if (res && res.token) {
+          localStorage.setItem('token', res.token);
+          state.user = res.user;
+          setChip();
+          
+          if (state.user?.role === 'head') {
+            $('#h-a-course').value = state.user.course || '';
+          }
+          
+          await loadRoleDash(false);
+        } else {
+          throw new Error('Invalid login');
+        }
+      } catch (err) {
+        alert('Login failed (demo will still work via Demo Login)');
+      }
+    });
+
+    $('#btnDemo').addEventListener('click', () => {
+      const role = $('#loginRole').value;
+      const email = $('#loginEmail').value.trim() || `demo-${role}@school.edu`;
+      
+      // Create demo user based on role
+      state.user = {
+        userId: `demo-${role}-${Math.random().toString(36).substr(2, 5)}`,
+        role: role,
+        displayName: email.split('@')[0] || `Demo ${role.charAt(0).toUpperCase() + role.slice(1)}`,
+        course: 'Mathematics',
+        email: email
+      };
+      
+      setChip();
+      loadRoleDash(true); // true = demo mode
+    });
+
+    $('#logoutBtn').addEventListener('click', () => {
+      localStorage.removeItem('token');
+      state.user = null;
+      setChip();
+      switchView();
+    });
+
+    // Assistant submit flow
+    $('#a-submit').addEventListener('click', async () => {
+      const studentId = $('#a-studentSelect').value;
+      const assignmentId = $('#a-assignmentSelect').value;
+      const status = $('#a-status').value;
+      const grade = $('#a-grade').value.trim();
+      const comment = $('#a-comment').value.trim();
+      const fileInput = $('#a-file');
+      let fileUrl = '';
+      
+      try {
+        // Basic client-side validation
+        if (!studentId || !assignmentId) {
+          $('#a-submit-msg').textContent = 'Choose a student and an assignment.';
+          return;
+        }
+        
+        if (fileInput.files && fileInput.files[0]) {
+          const u = await uploadFileBase64(fileInput.files[0], studentId, assignmentId);
+          if (!u || !u.ok) throw new Error(u?.error || 'Upload failed');
+          if (!u.fileUrl) throw new Error('Upload returned no fileUrl');
+          fileUrl = u.fileUrl;
+        }
+        
+        const r = await api('submitCheck', { assignmentId, studentId, status, grade, comment, fileUrl });
+        if (r?.updated) {
+          $('#a-submit-msg').textContent = 'Updated ✏️';
+        } else if (r?.created) {
+          $('#a-submit-msg').textContent = 'Created ✅';
+        } else {
+          $('#a-submit-msg').textContent = 'Saved ✅';
+        }
+        
+        // Refresh data
+        await loadRoleDash(state.user.role === 'assistant' && !localStorage.getItem('token'));
+      } catch (err) {
+        $('#a-submit-msg').textContent = 'Failed to save';
+      }
+    });
+
+    // Head reassignment
+    $('#h-reassign').addEventListener('click', async () => {
+      const studentId = $('#h-studentSelect').value;
+      const assistantId = $('#h-assistantSelect').value;
+      try {
+        await api('reassignStudent', { studentId, assistantId });
+        $('#h-reassign-msg').textContent = 'Reassigned ✅';
+        await loadRoleDash(!localStorage.getItem('token'));
+      } catch (err) {
+        $('#h-reassign-msg').textContent = 'Failed';
+      }
+    });
+
+    // Head create assignment
+    $('#h-create-assignment').addEventListener('click', async () => {
+      const title = $('#h-a-title').value.trim();
+      const course = (state.user && state.user.course) || '';
+      const unit = $('#h-a-unit').value.trim();
+      const deadline = $('#h-a-deadline').value;
+      
+      try {
+        await api('createAssignment', { title, course, unit, deadline });
+        $('#h-create-msg').textContent = 'Created ✅';
+        await loadRoleDash(!localStorage.getItem('token'));
+      } catch (err) {
+        $('#h-create-msg').textContent = 'Failed';
+      }
+    });
+
+    // Initialize tabs
+    initTabs('#view-assistant');
+    initTabs('#view-head');
+    initTabs('#view-student');
+
+    // Auto-login on page load
+    document.addEventListener('DOMContentLoaded', async () => {
+      const token = localStorage.getItem('token');
+      if (!token) { switchView(); return; }
+      
+      try {
+        const res = await api('me');
+        if (res && res.user) {
+          state.user = res.user;
+          setChip();
+
+          if (state.user?.role === 'head') {
+            $('#h-a-course').value = state.user.course || '';
+          }
+
+          await loadRoleDash(false);
+        } else {
+          localStorage.removeItem('token');
+          switchView();
+        }
+      } catch (e) {
+        localStorage.removeItem('token');
+        switchView();
+      }
+    });
+
+    // Make functions available globally for onclick handlers
+    window.toggleAssignmentExpansion = toggleAssignmentExpansion;
+    
+    window.submitAssignment = async function(assignmentId, file) {
+      if (!file) {
+        alert('Please select a file to upload');
+        return;
+      }
+      
+      try {
+        const studentId = state.student.studentId || state.user.userId;
+
+        // Demo/local handling: avoid Unauthorized by bypassing backend
+        if (state.demo && !hasToken()) {
+          const assignment = state.student.assignments.find(a => a.assignmentId === assignmentId);
+          // Create an object URL so user can at least download during this session
+          const fakeUpload = { ok: true, fileUrl: URL.createObjectURL(file) };
+          assignment.status = 'Submitted';
+          assignment.hasSubmission = true;
+          assignment.submission = {
+            submissionId: `local-${assignmentId}-${Date.now()}`,
+            submittedAt: new Date().toISOString(),
+            version: (assignment.submission?.version || 0) + 1,
+            fileUrl: fakeUpload.fileUrl
+          };
+          renderStudent();
+          alert('Assignment submitted successfully! (Demo mode)');
+          return;
+        }
+        
+        // Real backend flow
+        const uploadRes = await uploadFileBase64(file, studentId, assignmentId);
+        if (!uploadRes || !uploadRes.ok) throw new Error(uploadRes?.error || 'Upload failed');
+        if (!uploadRes.fileUrl) throw new Error('Upload returned no fileUrl');
+        
+        const res = await api('submitAssignment', { 
+          assignmentId, 
+          file: {
+            filename: file.name,
+            mimeType: file.type,
+            fileUrl: uploadRes.fileUrl
+          }
+        });
+        
+        if (res.ok) {
+          const assignment = state.student.assignments.find(a => a.assignmentId === assignmentId);
+          if (assignment) {
+            assignment.status = 'Submitted';
+            assignment.hasSubmission = true;
+            assignment.submission = res.submission || {
+              submissionId: `srv-${assignmentId}-${Date.now()}`,
+              submittedAt: new Date().toISOString(),
+              version: (assignment.submission?.version || 0) + 1,
+              fileUrl: uploadRes.fileUrl
+            };
+          }
+          renderStudent();
+          alert('Assignment submitted successfully!');
+        }
+      } catch (err) {
+        alert('Failed to submit assignment: ' + err.message);
+      }
+    };
+
+    window.updateSubmission = async function(submissionId, file) {
+      if (!file) {
+        alert('Please select a file to upload');
+        return;
+      }
+      
+      try {
+        const studentId = state.student.studentId || state.user.userId;
+        const assignmentId = state.student.assignments.find(a => 
+          a.submission && a.submission.submissionId === submissionId
+        )?.assignmentId;
+        
+        if (!assignmentId) throw new Error('Could not find assignment for this submission');
+
+        // Demo/local handling
+        if (state.demo && !hasToken()) {
+          const assignment = state.student.assignments.find(a => a.assignmentId === assignmentId);
+          assignment.submission = {
+            submissionId,
+            submittedAt: new Date().toISOString(),
+            version: (assignment.submission?.version || 1) + 1,
+            fileUrl: URL.createObjectURL(file)
+          };
+          renderStudent();
+          alert('Submission updated successfully! (Demo mode)');
+          return;
+        }
+        
+        // Real backend flow
+        const uploadRes = await uploadFileBase64(file, studentId, assignmentId);
+        if (!uploadRes || !uploadRes.ok) throw new Error(uploadRes?.error || 'Upload failed');
+        if (!uploadRes.fileUrl) throw new Error('Upload returned no fileUrl');
+        
+        const res = await api('updateSubmission', { 
+          submissionId, 
+          file: {
+            filename: file.name,
+            mimeType: file.type,
+            fileUrl: uploadRes.fileUrl
+          }
+        });
+        
+        if (res.ok) {
+          for (let assignment of state.student.assignments) {
+            if (assignment.submission && assignment.submission.submissionId === submissionId) {
+              assignment.submission = res.submission || {
+                submissionId,
+                submittedAt: new Date().toISOString(),
+                version: (assignment.submission?.version || 1) + 1,
+                fileUrl: uploadRes.fileUrl
+              };
+              break;
             }
-            
-            // Update user chip and logout button
-            if (state.user) {
-                document.getElementById("userChip").textContent = `${state.user.name} · ${state.user.role}`;
-                document.getElementById("userChip").classList.remove("hidden");
-                document.getElementById("logoutBtn").classList.remove("hidden");
-            } else {
-                document.getElementById("userChip").classList.add("hidden");
-                document.getElementById("logoutBtn").classList.add("hidden");
-            }
+          }
+          renderStudent();
+          alert('Submission updated successfully!');
         }
-
-        function renderLogin() {
-            document.getElementById("view-login").classList.remove("hidden");
-            document.getElementById("userChip").classList.add("hidden");
-            document.getElementById("logoutBtn").classList.add("hidden");
-        }
-
-        function renderTeacher() {
-            document.getElementById("view-assistant").classList.remove("hidden");
-            
-            // Example students
-            state.students = [
-                { id: 1, name: "Student One", course: "Biology 101", assignments: [{ title: "Assignment 1", grade: "A" }] },
-                { id: 2, name: "Student Two", course: "Biology 101", assignments: [{ title: "Assignment 1", grade: "B" }] },
-            ];
-
-            const list = document.getElementById("a-assignments-table").querySelector("tbody");
-            list.innerHTML = "";
-            state.students.forEach((student) => {
-                const tr = document.createElement("tr");
-                tr.innerHTML = `
-                    <td>${student.name}</td>
-                    <td>${student.course}</td>
-                    <td>5/8</td>
-                    <td>B+</td>
-                    <td><button class="btn primary">View</button></td>
-                `;
-                list.appendChild(tr);
-            });
-            
-            // Update KPIs
-            document.getElementById("a-kpi-students").textContent = state.students.length;
-            document.getElementById("a-kpi-assignments").textContent = state.assignments.filter(a => a.status === 'submitted').length;
-            document.getElementById("a-kpi-week").textContent = "12";
-            
-            // Initialize charts
-            initCharts();
-        }
-
-        function renderHead() {
-            document.getElementById("view-head").classList.remove("hidden");
-            
-            // Update KPIs
-            document.getElementById("h-kpi-assistants").textContent = "5";
-            document.getElementById("h-kpi-students").textContent = "42";
-            document.getElementById("h-kpi-assignments").textContent = "18";
-            
-            // Initialize charts
-            initCharts();
-        }
-
-        function renderStudent() {
-            document.getElementById("view-student").classList.remove("hidden");
-            const student = state.user;
-            
-            // Update KPIs
-            document.getElementById("s-kpi-assignments").textContent = state.assignments.length;
-            document.getElementById("s-kpi-pending").textContent = state.assignments.filter(a => a.status === 'pending').length;
-            document.getElementById("s-kpi-graded").textContent = state.assignments.filter(a => a.status === 'submitted').length;
-
-            // Render assignments table
-            const tbody = document.getElementById("s-assignments-body");
-            tbody.innerHTML = "";
-            
-            state.assignments.forEach(assignment => {
-                const tr = document.createElement("tr");
-                tr.className = "assignment-row";
-                tr.innerHTML = `
-                    <td><span class="expand-icon">▼</span></td>
-                    <td>${assignment.title}</td>
-                    <td>${assignment.course}</td>
-                    <td>Unit 1</td>
-                    <td>${assignment.deadline}</td>
-                    <td>
-                        <span class="badge ${assignment.status === 'submitted' ? 'ok' : assignment.status === 'pending' ? 'warn' : 'danger'}">
-                            ${assignment.status.charAt(0).toUpperCase() + assignment.status.slice(1)}
-                        </span>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-
-            // Render grades table
-            const gradesTbody = document.getElementById("s-grades-table").querySelector("tbody");
-            gradesTbody.innerHTML = "";
-            
-            state.assignments.filter(a => a.grade).forEach(assignment => {
-                const tr = document.createElement("tr");
-                tr.innerHTML = `
-                    <td>${assignment.title}</td>
-                    <td>${assignment.grade}</td>
-                    <td><span class="badge ok">Graded</span></td>
-                    <td>Good work!</td>
-                    <td>${assignment.deadline}</td>
-                `;
-                gradesTbody.appendChild(tr);
-            });
-        }
-
-        // Initialize charts
-        function initCharts() {
-            // Line chart for weekly checks
-            const lineCtx = document.getElementById('a-line');
-            if (lineCtx) {
-                new Chart(lineCtx, {
-                    type: 'line',
-                    data: {
-                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                        datasets: [{ 
-                            label: 'Checks', 
-                            data: [12, 19, 8, 15, 22, 10, 5],
-                            borderColor: '#4361ee',
-                            tension: 0.1,
-                            fill: false
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            title: {
-                                display: true,
-                                text: 'Weekly Checks'
-                            }
-                        }
-                    }
-                });
-            }
-            
-            // Donut chart for status breakdown
-            const donutCtx = document.getElementById('a-donut');
-            if (donutCtx) {
-                new Chart(donutCtx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Checked', 'Missing', 'Redo'],
-                        datasets: [{
-                            data: [60, 25, 15],
-                            backgroundColor: ['#4cc9f0', '#f59e0b', '#ef4444']
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            legend: {
-                                position: 'bottom'
-                            }
-                        }
-                    }
-                });
-            }
-            
-            // Bar chart for assistant performance
-            const barCtx = document.getElementById('h-bar');
-            if (barCtx) {
-                new Chart(barCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: ['Sarah', 'Michael', 'Jessica', 'David', 'Emily'],
-                        datasets: [{
-                            label: 'Checked Papers',
-                            data: [35, 28, 42, 31, 39],
-                            backgroundColor: '#4361ee'
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            title: {
-                                display: true,
-                                text: 'Checked Papers per Assistant'
-                            }
-                        }
-                    }
-                });
-            }
-        }
-
-        // PDF Generation Function
-        function generateStudentReport(student) {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-
-            // Title
-            doc.setFontSize(20);
-            doc.setTextColor(31, 60, 136);
-            doc.text("Student Academic Report", 105, 20, { align: 'center' });
-
-            // Student info
-            doc.setFontSize(12);
-            doc.setTextColor(0, 0, 0);
-            doc.text(`Name: ${student.name}`, 20, 40);
-            doc.text(`Student ID: ${student.id}`, 20, 50);
-            doc.text(`Course: ${student.course}`, 20, 60);
-            doc.text(`Report Date: ${new Date().toLocaleDateString()}`, 20, 70);
-
-            // Grades table header
-            doc.setFillColor(31, 60, 136);
-            doc.setTextColor(255, 255, 255);
-            doc.rect(20, 85, 170, 10, 'F');
-            doc.text("Assignment", 25, 91);
-            doc.text("Grade", 150, 91);
-
-            // Grades table content
-            doc.setTextColor(0, 0, 0);
-            let y = 100;
-            
-            state.assignments.filter(a => a.grade).forEach(assignment => {
-                doc.text(assignment.title, 25, y);
-                doc.text(assignment.grade, 150, y);
-                y += 10;
-            });
-
-            // Performance summary
-            y += 15;
-            doc.setFontSize(14);
-            doc.setTextColor(31, 60, 136);
-            doc.text("Performance Summary", 20, y);
-            
-            y += 10;
-            doc.setFontSize(12);
-            doc.setTextColor(0, 0, 0);
-            doc.text(`Assignments Completed: ${state.assignments.filter(a => a.status === 'submitted').length}/${state.assignments.length}`, 20, y);
-            
-            y += 8;
-            const completed = state.assignments.filter(a => a.grade).length;
-            const total = state.assignments.length;
-            doc.text(`Graded Assignments: ${completed}/${total}`, 20, y);
-            
-            y += 8;
-            doc.text("Overall Performance: Good", 20, y);
-
-            // Save PDF
-            const name = student.name.replace(/\s+/g, '_');
-            doc.save(`${name}_report.pdf`);
-        }
-
-        // Initialize the app
-        function init() {
-            // Set up tab functionality
-            document.querySelectorAll('.tabs .tab').forEach(tab => {
-                tab.addEventListener('click', function() {
-                    const tabContainer = this.closest('.tabs');
-                    const tabContentId = this.getAttribute('data-tab');
-                    
-                    // Update active tab
-                    tabContainer.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    // Show corresponding content
-                    tabContainer.parentElement.querySelectorAll('.tab-content').forEach(content => {
-                        content.classList.add('hidden');
-                    });
-                    document.getElementById(tabContentId).classList.remove('hidden');
-                });
-            });
-
-            // Set up login buttons
-            document.getElementById('btnLogin').addEventListener('click', function() {
-                const role = document.getElementById('loginRole').value;
-                login(role);
-            });
-
-            document.getElementById('btnDemo').addEventListener('click', function() {
-                const role = document.getElementById('loginRole').value;
-                login(role);
-            });
-
-            // Set up logout button
-            document.getElementById('logoutBtn').addEventListener('click', logout);
-
-            // Initialize the view
-            render();
-        }
-
-        // Start the application
-        init();
-    </script>
+      } catch (err) {
+        alert('Failed to update submission: ' + err.message);
+      }
+    };
+  </script>
 </body>
 </html>
