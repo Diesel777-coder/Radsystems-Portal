@@ -781,7 +781,7 @@
     }
 
     // =====================
-    // PDF Generation
+    // PDF Generation (Updated to match your example)
     // =====================
     function generateStudentReport(student) {
       const { jsPDF } = window.jspdf;
@@ -789,28 +789,115 @@
 
       // Title
       doc.setFontSize(18);
-      doc.text("Student Report", 20, 20);
+      doc.setTextColor(40, 40, 40);
+      doc.text("Student Academic Report", 105, 20, { align: "center" });
+      
+      // Divider line
+      doc.setDrawColor(200, 200, 200);
+      doc.line(20, 25, 190, 25);
 
       // Student info
       doc.setFontSize(12);
+      doc.setTextColor(80, 80, 80);
       doc.text(`Name: ${student.studentName || student.displayName || 'Student'}`, 20, 40);
-      doc.text(`Course: ${student.course || 'N/A'}`, 20, 50);
+      doc.text(`Student ID: ${student.studentId || 'N/A'}`, 20, 48);
+      doc.text(`Course: ${student.course || 'N/A'}`, 20, 56);
+      doc.text(`Report Date: ${new Date().toLocaleDateString()}`, 20, 64);
 
-      // Assignments
-      let y = 70;
+      // Grades table header
       doc.setFontSize(14);
-      doc.text("Assignments & Grades:", 20, y);
-      y += 10;
+      doc.setTextColor(40, 40, 40);
+      doc.text("Grades", 20, 80);
+      
+      // Table headers
+      doc.setFillColor(240, 240, 240);
+      doc.rect(20, 85, 170, 10, 'F');
+      doc.setFontSize(12);
+      doc.setTextColor(60, 60, 60);
+      doc.text("Assignment", 25, 92);
+      doc.text("Grade", 150, 92);
 
+      // Table rows
+      let yPosition = 100;
+      doc.setFontSize(11);
+      doc.setTextColor(80, 80, 80);
+      
       if (student.grades && student.grades.length) {
         student.grades.forEach(g => {
-          doc.setFontSize(12);
-          doc.text(`${g.title} - Grade: ${g.grade}`, 20, y);
-          y += 10;
+          doc.text(g.title, 25, yPosition);
+          doc.text(g.grade, 150, yPosition);
+          yPosition += 8;
         });
       } else {
-        doc.text("No assignments available", 20, y);
+        doc.text("No assignments available", 25, yPosition);
+        yPosition += 8;
       }
+
+      // Performance Summary
+      yPosition += 10;
+      doc.setFontSize(14);
+      doc.setTextColor(40, 40, 40);
+      doc.text("Performance Summary", 20, yPosition);
+      
+      yPosition += 10;
+      doc.setFontSize(11);
+      doc.setTextColor(80, 80, 80);
+      
+      const completed = student.grades ? student.grades.length : 0;
+      const total = student.assignments ? student.assignments.length : 0;
+      const pending = total - completed;
+      
+      doc.text(`Assignments Completed: ${completed}/${total}`, 25, yPosition);
+      yPosition += 8;
+      doc.text(`Pending Assignments: ${pending}/${total}`, 25, yPosition);
+      yPosition += 8;
+      
+      // Calculate overall performance
+      let overallPerformance = "Good";
+      if (completed > 0) {
+        const letterGrades = student.grades.map(g => {
+          const gradeValue = parseFloat(g.grade);
+          if (!isNaN(gradeValue)) {
+            if (gradeValue >= 90) return "A";
+            if (gradeValue >= 80) return "B";
+            if (gradeValue >= 70) return "C";
+            if (gradeValue >= 60) return "D";
+            return "F";
+          }
+          
+          // Handle fraction grades like "18/20"
+          if (g.grade.includes('/')) {
+            const parts = g.grade.split('/');
+            const numerator = parseFloat(parts[0]);
+            const denominator = parseFloat(parts[1]);
+            if (!isNaN(numerator) && !isNaN(denominator) && denominator > 0) {
+              const percentage = (numerator / denominator) * 100;
+              if (percentage >= 90) return "A";
+              if (percentage >= 80) return "B";
+              if (percentage >= 70) return "C";
+              if (percentage >= 60) return "D";
+              return "F";
+            }
+          }
+          return null;
+        }).filter(grade => grade !== null);
+        
+        if (letterGrades.length > 0) {
+          const gradePoints = {
+            "A": 4, "B": 3, "C": 2, "D": 1, "F": 0
+          };
+          
+          const totalPoints = letterGrades.reduce((sum, grade) => sum + gradePoints[grade], 0);
+          const average = totalPoints / letterGrades.length;
+          
+          if (average >= 3.5) overallPerformance = "Excellent";
+          else if (average >= 2.5) overallPerformance = "Good";
+          else if (average >= 1.5) overallPerformance = "Fair";
+          else overallPerformance = "Needs Improvement";
+        }
+      }
+      
+      doc.text(`Overall Performance: ${overallPerformance}`, 25, yPosition);
 
       // Save PDF
       const name = (student.studentName || student.displayName || 'student').replace(/\s+/g, "_");
@@ -876,15 +963,16 @@
       else if (state.user.role === 'student') {
         if (demo) {
           state.student = {
-            studentId: 'demo-student-1',
-            studentName: 'Demo Student',
+            studentId: 'S001',
+            studentName: 'Student One',
+            course: 'Biology 101',
             assignments: [
               { assignmentId: 'as1', title: 'Homework 5', course: 'Math', unit: 'U1', deadline: '2025-09-10', status: 'Pending' },
               { assignmentId: 'as2', title: 'Quiz 2 Review', course: 'Math', unit: 'U2', deadline: '2025-09-15', status: 'Submitted', hasSubmission: true, submission: { submissionId: 'sub1', submittedAt: new Date().toISOString(), version: 1 } }
             ],
             grades: [
-              { assignmentId: 'as3', title: 'Worksheet 7', grade: '18/20', status: 'Graded', feedback: 'Good work!', fileUrl: 'https://example.com/feedback1.pdf', date: '2025-08-28' },
-              { assignmentId: 'as4', title: 'Homework 4', grade: '16/20', status: 'Graded', feedback: 'Please review chapter 3', fileUrl: 'https://example.com/feedback2.pdf', date: '2025-08-20' }
+              { assignmentId: 'as3', title: 'Biology Essay', grade: 'A', status: 'Graded', feedback: 'Well researched and written', fileUrl: 'https://example.com/feedback1.pdf', date: '2025-08-28' },
+              { assignmentId: 'as4', title: 'Math Problem Set', grade: 'B+', status: 'Graded', feedback: 'Minor calculation errors', fileUrl: 'https://example.com/feedback2.pdf', date: '2025-08-20' }
             ]
           };
         } else {
